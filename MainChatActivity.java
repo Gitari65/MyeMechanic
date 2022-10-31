@@ -134,7 +134,7 @@ public class MainChatActivity extends AppCompatActivity {
             }
         });
 
-        Query userquery = users.orderByChild("uid").equalTo(uid);
+        Query userquery = users.orderByChild("userId").equalTo(uid);
         userquery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

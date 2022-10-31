@@ -71,13 +71,13 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
                 replaceFragment(new ChatlistFragment());
                 drawerLayout.closeDrawer(GravityCompat.START);
                 break;
-
-
-
             case R.id.nav_requests:
+                replaceFragment(new MechViewRequestsFragment());
                 drawerLayout.closeDrawer(GravityCompat.START);
-                Intent intent=new Intent(getApplicationContext(),TechnicianHomeActivity.class);
                 break;
+
+
+
             case R.id.nav_logout:
 
                 drawerLayout.closeDrawer(GravityCompat.START);

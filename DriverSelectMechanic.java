@@ -1,8 +1,6 @@
 package com.example.myemechanic;
 
 import static android.content.ContentValues.TAG;
-import static android.graphics.Color.BLUE;
-import static android.graphics.Color.RED;
 import static android.graphics.Color.blue;
 
 import androidx.annotation.NonNull;
@@ -27,6 +25,7 @@ import android.location.LocationRequest;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +34,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,13 +43,13 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.shashank.sony.fancytoastlib.FancyToast;
 import com.squareup.picasso.Picasso;
@@ -65,6 +65,7 @@ import java.util.Objects;
 public class DriverSelectMechanic extends AppCompatActivity {
     EditText editTextf, editTexts, editTexte, editTextl,editTextp;
     ImageView imageViewp, imageViewl;
+    LinearLayout layout;
 
     protected LocationManager locationManager;
     protected LocationListener locationListener;
@@ -95,7 +96,7 @@ public class DriverSelectMechanic extends AppCompatActivity {
     String garagename;
 
 
-    Button buttonCall, buttonBack,buttonMessage,buttonLocation;
+    Button buttonCall, buttonBack,buttonMessage,buttonLocation,buttonrequest,buttoncancel;
     DocumentSnapshot documentSnapshot;
 
 
@@ -114,6 +115,7 @@ public class DriverSelectMechanic extends AppCompatActivity {
         String current_userId = getIntent().getStringExtra("currentuserid");
         String licenseUrl = getIntent().getStringExtra("licenceUrl");
 
+
         String garageLocation = getIntent().getStringExtra("garageLocation");
         String garageName = getIntent().getStringExtra("garageName");
 
@@ -122,9 +124,12 @@ public class DriverSelectMechanic extends AppCompatActivity {
         Log.d(TAG, "onCreate: "+licenseUrl);
         Log.d(TAG, "onCreate: "+garageLocation);
 
+ layout= (LinearLayout) findViewById(R.id.layoutDetails);
 
         editTexte = findViewById(R.id.verymechanic_emailD);
         buttonBack = findViewById(R.id.btnselectmech_back);
+        buttonrequest=findViewById(R.id.btnsendRequest);
+        buttoncancel=findViewById(R.id.btncancelRequestmech);
         buttonMessage=findViewById(R.id.btnchatMech);
         editTextf = findViewById(R.id.verymechanic_firstnameD);
         editTexts = findViewById(R.id.verymechanic_secondnameD);
@@ -149,13 +154,69 @@ public class DriverSelectMechanic extends AppCompatActivity {
         editTexte.setText(mechanicEmail);
         editTextp.setText(mechanicPhoneNumber);
 
-        //String verificationStatustext = editTextv.getText().toString().trim();
+        //String verificationStatustext = editTextv.getText().toString().trim();\
+
+        layout.setVisibility(View.GONE);
         //back intent
         buttonBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), DriverProblemActivity.class);
                 startActivity(intent);
+
+            }
+        });
+        //request
+        String carProblemDescription=getIntent().getStringExtra("carProblemDescription");
+        String carModel=getIntent().getStringExtra("carModel");
+        String carPart=getIntent().getStringExtra("carPart");
+        String driverId=getIntent().getStringExtra("driverId");
+        buttonrequest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //updating mechanics
+                String  userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+                FirebaseFirestore db3 = FirebaseFirestore.getInstance();
+                db3.collection("driverRequest").document(userId).update("mechanicId", current_userId)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                Log.d(TAG, "onSuccess: spinner stored");
+
+
+                                Toast.makeText(getApplicationContext(),"request sent",Toast.LENGTH_SHORT).show();
+                                buttonrequest.setText("waiting....");
+                                buttoncancel.setVisibility(View.VISIBLE);
+                                RequestProcessingDetails();
+
+
+                            }
+                        });
+
+
+            }
+        });
+        //cancelling requesting mech
+       buttoncancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //cancelling request
+                String current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+                FirebaseFirestore db3 = FirebaseFirestore.getInstance();
+                db3.collection("driverRequest").document(current_userId).update("mechanicId", "")
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                Log.d(TAG, "onSuccess: spinner stored");
+
+                                Toast.makeText(getApplicationContext(), "request cancelled xx",Toast.LENGTH_SHORT).show();
+buttoncancel.setVisibility(View.GONE);
+layout.setVisibility(View.GONE);
+buttonrequest.setVisibility(View.VISIBLE);
+                                buttonrequest.setText("request");
+
+                            }
+                        });
 
             }
         });
@@ -253,6 +314,52 @@ public class DriverSelectMechanic extends AppCompatActivity {
                                 });
 
                                 Log.d(TAG, "onComplete: mecha garage name "+garagename);
+                            }
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                    }
+                });
+    }
+    public void RequestProcessingDetails(){
+        FirebaseAuth mAuth= FirebaseAuth.getInstance();
+        FirebaseUser userID  = mAuth.getCurrentUser();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String current_userId = getIntent().getStringExtra("currentuserid");
+
+
+
+        db.collection("driverRequest").document(current_userId).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            documentSnapshot = task.getResult();
+                            if (documentSnapshot.exists()) {
+                               String status= documentSnapshot.getString("status");
+                            if (Objects.equals(status, "accepted")){
+                                buttonrequest.setVisibility(View.GONE);
+                                layout.setVisibility(View.VISIBLE);
+
+
+                            }
+                                if (Objects.equals(status, "rejected")){
+                                    buttonrequest.setText("Denied XX");
+                                    Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic unavailable",Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getApplicationContext(), "go back and try other available mechs",Toast.LENGTH_LONG).show();
+
+
+
+
+                                }
+                            else{
+                                buttonrequest.setText("waiting....");
+                                buttoncancel.setVisibility(View.VISIBLE);
+                            }
                             }
                         }
                     }

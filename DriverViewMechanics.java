@@ -2,6 +2,7 @@ package com.example.myemechanic;
 
 import static android.content.ContentValues.TAG;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,8 +16,15 @@ import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -55,81 +63,93 @@ public class DriverViewMechanics extends AppCompatActivity implements  RecyclerV
         progressDialog=new ProgressDialog(DriverViewMechanics.this);
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Fetching data....");
-        progressDialog.show();
+       progressDialog.show();
     String carProblemDescription=getIntent().getStringExtra("carProblemDescription");
         String carModel=getIntent().getStringExtra("carModel");
-        String carPart=getIntent().getStringExtra("carPart");
+       // String carPart=getIntent().getStringExtra("carPart");
+
         recyclerView.setAdapter(myAdapter);
-
-        if (Objects.equals(carPart, "Don't know")){
-            EventChangeListener1();
-            textView.setText(" Mechanics");
-        }
-        if (Objects.equals(carPart, "Engine") ||Objects.equals(carPart, "Tyres") ||Objects.equals(carPart, "Brakes")||Objects.equals(carPart, "Electrical")){
-            textView.setText(carModel+" "+ carPart+" Mechanics");
-            EventChangeListener();
-        }
+        getDriverProblemDetails();
+        Log.d(TAG, "onCreate: activityPart "+carPart);
+        Log.d(TAG, "onCreate: activityModel "+carModel);
 
 
 
 
     }
-    private void EventChangeListener() {
+
+    public void getDriverProblemDetails(){
+        FirebaseAuth mAuth= FirebaseAuth.getInstance();
+       String userID  = mAuth.getCurrentUser().getUid();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String carPart=getIntent().getStringExtra("carPart");
-        CollectionReference mydbRef = db.collection("mechanics");
-        db.collection("mechanics").whereEqualTo(carPart, "True").addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                if (error!=null){
-                    if(progressDialog.isShowing()){
-                        progressDialog.dismiss();
-                    }
-                    Log.d(TAG, "onEvent: error firestore ");
-                    return;
-                }
-                assert value != null;
-                for(DocumentChange documentChange :value.getDocumentChanges())
-                    if (documentChange.getType() == DocumentChange.Type.ADDED) {
-                        mechanicsArrayList.add(documentChange.getDocument().toObject(mechanic_details.class));
+        //String current_userId = getIntent().getStringExtra("driversId");
 
 
+
+        db.collection("driverRequest").document(userID).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                           DocumentSnapshot documentSnapshot = task.getResult();
+                            if (documentSnapshot.exists()) {
+                              final String carPart= documentSnapshot.getString("carPart");
+
+
+                                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+                                    // String carPart=getIntent().getStringExtra("carPart");
+                                    CollectionReference mydbRef = db.collection("mechanics");
+                                assert carPart != null;
+                                db.collection("mechanics").whereEqualTo(carPart, "True").addSnapshotListener(new EventListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                                            if (error!=null){
+                                                if(progressDialog.isShowing()){
+                                                    progressDialog.dismiss();
+                                                }
+                                                Log.d(TAG, "onEvent: error firestore ");
+                                                return;
+                                            }
+                                            assert value != null;
+                                            for(DocumentChange documentChange :value.getDocumentChanges())
+                                                if (documentChange.getType() == DocumentChange.Type.ADDED) {
+                                                    mechanicsArrayList.add(documentChange.getDocument().toObject(mechanic_details.class));
+
+
+                                                }
+                                            myAdapter.notifyDataSetChanged();
+                                            if(progressDialog.isShowing()){
+                                                progressDialog.dismiss();
+                                            }
+                                        }
+                                    });
+
+
+
+                                if (Objects.equals(carPart, "Don't know")){
+
+                                    textView.setText(" Mechanics");
+                                }
+                                else{
+                                    String carModel = getIntent().getStringExtra("carModel");
+                                    textView.setText(carModel+" "+ carPart+" Mechanics");
+
+                                }
+
+
+                                // Log.d(TAG, "onComplete: mecha garage name "+garagename);
+                            }
+                        }
                     }
-                myAdapter.notifyDataSetChanged();
-                if(progressDialog.isShowing()){
-                    progressDialog.dismiss();
-                }
-            }
-        });
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                    }
+                });
     }
-    private void EventChangeListener1() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        //String carPart=getIntent().getStringExtra("carPart");
-        CollectionReference mydbRef = db.collection("mechanics");
-        db.collection("mechanics").addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                if (error!=null){
-                    if(progressDialog.isShowing()){
-                        progressDialog.dismiss();
-                    }
-                    Log.d(TAG, "onEvent: error firestore ");
-                    return;
-                }
-                assert value != null;
-                for(DocumentChange documentChange :value.getDocumentChanges())
-                    if (documentChange.getType() == DocumentChange.Type.ADDED) {
-                        mechanicsArrayList.add(documentChange.getDocument().toObject(mechanic_details.class));
 
-
-                    }
-                myAdapter.notifyDataSetChanged();
-                if(progressDialog.isShowing()){
-                    progressDialog.dismiss();
-                }
-            }
-        });
-    }
     @Override
     public void onItemClick(int position) {
         String carProblemDescription=getIntent().getStringExtra("carProblemDescription");

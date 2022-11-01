@@ -90,12 +90,12 @@ String  carProblemDescription=editText.getText().toString();
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         if(task.isSuccessful()){
-                                            Intent intent = new Intent(getApplicationContext(), DriverViewMechanics.class);
-                                            intent.putExtra("carPart", carPart);
-                                            intent.putExtra("driverId", user_id);
+                                            Intent intent1 = new Intent(getApplicationContext(), DriverViewMechanics.class);
+                                            intent1.putExtra("carPart", carPart);
+                                            intent1.putExtra("driverId", user_id);
                                            // intent.putExtra("carProblemDescription",carProblemDescription);
                                             //intent.putExtra("carModel", "Suzuki");
-                                            startActivity(intent);
+                                            startActivity(intent1);
                                         }
                                     }
                                 }).addOnFailureListener(new OnFailureListener() {

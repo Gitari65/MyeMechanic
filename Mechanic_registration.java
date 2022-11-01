@@ -167,6 +167,7 @@ checkBox=findViewById(R.id.checkBoxM);
                     FirebaseFirestore dbE = FirebaseFirestore.getInstance();
                     Map<String, Object> userE = new HashMap<>();
                     userE.put("Electrical", "True");
+                    userE.put("Don't know", "True");
                     dbE.collection("mechanics").document(user_id).set(userE, SetOptions.merge());
 
 

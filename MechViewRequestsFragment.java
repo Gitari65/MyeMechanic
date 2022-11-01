@@ -146,12 +146,13 @@ public class MechViewRequestsFragment extends Fragment implements RecyclerViewIn
 
     @Override
     public void onItemClick(int position) {
-        Intent intent = new Intent(getContext(), MechanicSelectDriver.class);
-        intent.putExtra("driversId", requestsArrayList.get(position).getDriversId());
+       // Intent intent = new Intent(getContext(), MechanicSelectDriver.class);
+      //  intent.putExtra("driversId",requestsArrayList.get(position).getDriversId() );
+       // Log.d(TAG, "onItemClick: driversId= "+requestsArrayList.get(position).getDriversId());
        // intent.putExtra("carModel", requestsArrayList.get(position).getCarModel());
       //  intent.putExtra("carProblemDescription", requestsArrayList.get(position).getCarProblemDescription());
 
-       startActivity(intent);
+      // startActivity(intent);
 
     }
 }

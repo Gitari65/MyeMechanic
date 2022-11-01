@@ -42,7 +42,7 @@ public class MechanicSelectDriver extends AppCompatActivity {
         textViewfName=findViewById(R.id.verydriver_firstnameD);
         textViewsName=findViewById(R.id.verydriver_secondnameD);
         imageView=findViewById(R.id.driver_profilePicture);
-
+        getDriverDetails();
         buttonBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

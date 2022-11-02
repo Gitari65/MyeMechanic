@@ -50,8 +50,8 @@ TextView textView;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_driver_registration);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+      //  ActionBar actionBar = getSupportActionBar();
+      //  actionBar.hide();
         //progerss
          ProgressDialog pd = new ProgressDialog(DriverRegistration.this);
         pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);

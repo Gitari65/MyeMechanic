@@ -19,8 +19,8 @@ LinearLayout layout;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main2);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+       // ActionBar actionBar = getSupportActionBar();
+     //   actionBar.hide();
 
 
         button=findViewById(R.id.btnMechanicType);

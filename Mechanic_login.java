@@ -50,8 +50,9 @@ FirebaseFirestore fStore;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mechanic_login);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+        //ActionBar actionBar = getSupportActionBar();
+       // assert actionBar != null;
+       // actionBar.hide();
         //progerss
         final ProgressDialog pd = new ProgressDialog(Mechanic_login.this);
         pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);

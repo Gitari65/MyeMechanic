@@ -86,6 +86,14 @@ public class DriversHomeFragment extends Fragment {
 
             }
         });
+        imageView1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                replaceFragment(new DriverProfileFragment());
+
+
+            }
+        });
 
 
 

@@ -85,8 +85,8 @@ public class MainChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_chat);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+       // ActionBar actionBar = getSupportActionBar();
+       // actionBar.hide();
         firebaseAuth = FirebaseAuth.getInstance();
 
         // initialise the text views and layouts

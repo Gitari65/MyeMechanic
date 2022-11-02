@@ -69,7 +69,7 @@ public class DriversHomeActivity extends AppCompatActivity {
 
                     case R.id.nav_drivers_account:
                         drawerLayout.closeDrawer(GravityCompat.START);
-                      //  replaceFragment(new VerifiedMechanicsFragment());
+                   replaceFragment(new DriverProfileFragment());
 
                         break;
                     case R.id.nav_drivers_chats:

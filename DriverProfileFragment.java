@@ -4,10 +4,8 @@ import static android.app.Activity.RESULT_OK;
 import static android.content.ContentValues.TAG;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -23,7 +21,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -32,16 +29,15 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
-import com.google.firebase.ktx.Firebase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
@@ -49,19 +45,17 @@ import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link MechanicProfileFragment#newInstance} factory method to
+ * Use the {@link DriverProfileFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MechanicProfileFragment extends Fragment {
+public class DriverProfileFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -72,7 +66,7 @@ public class MechanicProfileFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
-    public MechanicProfileFragment() {
+    public DriverProfileFragment() {
         // Required empty public constructor
     }
 
@@ -82,11 +76,11 @@ public class MechanicProfileFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment MechanicProfileFragment.
+     * @return A new instance of fragment DriverProfileFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static MechanicProfileFragment newInstance(String param1, String param2) {
-        MechanicProfileFragment fragment = new MechanicProfileFragment();
+    public static DriverProfileFragment newInstance(String param1, String param2) {
+        DriverProfileFragment fragment = new DriverProfileFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -94,16 +88,17 @@ public class MechanicProfileFragment extends Fragment {
         return fragment;
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
+    EditText textFName,textSName,textEmail,textPhone;
+    Button btnUpdate;
+    ImageView imageView,imageView1;
     // request code
     private final int PICK_IMAGE_REQUEST = 22,PICK_IMAGE_REQUEST1 = 23;
 
@@ -113,125 +108,100 @@ public class MechanicProfileFragment extends Fragment {
     private StorageReference storageReference;
     private Uri filePath,filePath1;
 
-    FirebaseFirestore fstore;
-
-    private ArrayList<mechanic_details> mechanicsArrayListArrayList;
-    private String userId;
-    EditText textfname,textsname,textidemail,textphonenumber;
-    DocumentSnapshot documentSnapshot;
-    ImageView imageView,imageView1;
-    Button button;
-    TextView textview;
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference dbRef = database.getReference();
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view= inflater.inflate(R.layout.fragment_mechanic_profile, container, false);
-        textfname=view.findViewById(R.id.txt_firstname);
-        imageView=view.findViewById(R.id.imageView_profilepic);
-        imageView1=view.findViewById(R.id.imgEditPhoto1);
-        textsname=view.findViewById(R.id.txt_secondname);
-        textidemail=view.findViewById(R.id.txt_mechanicemail);
-        textphonenumber=view.findViewById(R.id.txt_phonenumber);
-        button=view.findViewById(R.id.btnUpdateMechanic);
-        FirebaseAuth mAuth= FirebaseAuth.getInstance();
-        userId=mAuth.getCurrentUser().getUid();
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        View view= inflater.inflate(R.layout.fragment_driver_profile, container, false);
 
-getProfileFromFirestore();
+        textEmail=view.findViewById(R.id.edtDriversEmail);
+        textFName=view.findViewById(R.id.edtDriversFName);
+        textPhone=view.findViewById(R.id.edtDriversPhone);
+        imageView=view.findViewById(R.id.imageView_updateProfilePic);
+        imageView1=view.findViewById(R.id.imgEditPhoto);
+        textSName=view.findViewById(R.id.edtDriversSName);
+        btnUpdate=view.findViewById(R.id.btnUpdateDriver);
+        loadDriverDetails();
+
+        imageView1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+               SelectProfilePhoto();
+            }
+        });
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
-button.setOnClickListener(new View.OnClickListener() {
-    @Override
-    public void onClick(View v) {
-        uploadProfilePhoto();
-        UpdateProfileToFirestore();
-    }
-});
-imageView1.setOnClickListener(new View.OnClickListener() {
-    @Override
-    public void onClick(View v) {
-        SelectProfilePhoto();
-    }
-});
-
-
-
-
-
-
+        btnUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                uploadProfilePhoto();
+                updateDriverDetails();
+            }
+        });
 
         return view;
     }
-    public void  getProfileFromFirestore(){
-        {
-            //firebase authentication
-            mAuth= FirebaseAuth.getInstance();
-            FirebaseUser userID  = mAuth.getCurrentUser();
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    public void loadDriverDetails(){
+        FirebaseAuth mAuth= FirebaseAuth.getInstance();
+        String userID  = mAuth.getCurrentUser().getUid();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        //String current_userId = getIntent().getStringExtra("driversId");
 
 
-            db.collection("mechanics").document(uid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+
+        db.collection("Drivers").document(userID).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot documentSnapshot = task.getResult();
+                            if (documentSnapshot.exists()) {
+                               String firstName= documentSnapshot.getString("driverFirstName");
+                                String secondName= documentSnapshot.getString("driverSecondName");
+                                String phoneNumber= documentSnapshot.getString("driverPhoneNumber");
+                                String Email= documentSnapshot.getString("driverEmail");
+                                String uri = documentSnapshot.getString("profilePhoto");
+                               // Picasso.get().load(uri).into(imageView);
+                                Picasso.get().load(uri).fit().placeholder(R.drawable.account_icon1)
+                                        .centerCrop()
+                                        .into(imageView);
+                                textEmail.setText(Email);
+                                textFName.setText(firstName);
+                                textPhone.setText(phoneNumber);
+                                textSName.setText(secondName);
 
 
-                    if (task.isSuccessful()) {
-                        documentSnapshot = task.getResult();
-                        if (documentSnapshot.exists()) {
-                            Toast.makeText(getContext(),"details found",Toast.LENGTH_LONG).show();
-                            //profile picture
-                            String uri = documentSnapshot.getString("profilePhotoUrl");
-                            Picasso.get().load(uri).fit().placeholder(R.drawable.account_icon1)
-                                    .centerCrop()
-                                    .into(imageView);
-
-                            textfname.setText(documentSnapshot.getString("firstName"));
-                            textsname.setText(documentSnapshot.getString("secondName"));
-                            textidemail.setText(documentSnapshot.getString("mechanicEmail"));
-                            textphonenumber.setText(documentSnapshot.getString("phoneNumber"));
-
+                                // Log.d(TAG, "onComplete: mecha garage name "+garagename);
+                            }
                         }
-                        else {
-                            Toast.makeText(getContext(),"no such record found",Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
 
-                        }
-                    }}
-
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(getContext(),"null snapshot",Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+                    }
+                });
     }
-    public void UpdateProfileToFirestore(){
+    public void updateDriverDetails(){
+        String firstname=textFName.getText().toString().trim();
+        String secondname=textSName.getText().toString().trim();
+        String email=textEmail.getText().toString().trim();
+        String phone=textPhone.getText().toString().trim();
+        String current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db3 = FirebaseFirestore.getInstance();
+        db3.collection("Drivers").document(current_userId).
+                update("driverFirstName", firstname,"driverSecondName",secondname,"driverEmail",email,"driverPhoneNumber",phone)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d(TAG, "onSuccess: spinner  stored");
 
-            String firstname=textfname.getText().toString().trim();
-            String secondname=textsname.getText().toString().trim();
-            String email=textidemail.getText().toString().trim();
-            String phone=textphonenumber.getText().toString().trim();
-            String current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-            FirebaseFirestore db3 = FirebaseFirestore.getInstance();
-            db3.collection("mechanics").document(current_userId).
-                    update("firstName", firstname,"secondName",secondname,"mechanicEmail",email,"phoneNumber",phone)
-                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void unused) {
-                            Log.d(TAG, "onSuccess: spinner  stored");
+                        Toast.makeText(getContext(),"updated details successfully",Toast.LENGTH_SHORT).show();
 
-                            Toast.makeText(getContext(),"updated details successfully",Toast.LENGTH_SHORT).show();
-
-                        }
-                    });
-        }
+                    }
+                });
+    }
     @Override
     public void onActivityResult(int requestCode,
                                  int resultCode,
@@ -355,19 +325,19 @@ imageView1.setOnClickListener(new View.OnClickListener() {
                                             //Store data into Firebase Realtime Database
                                             String profilePhoto= downloadPhotoUrl.toString();
                                             Map<String, Object> user = new HashMap<>();
-                                            user.put("profilePhotoUrl", profilePhoto);
+                                            user.put("profilePhoto", profilePhoto);
 
                                             mAuth = FirebaseAuth.getInstance();
                                             FirebaseUser userID  = mAuth.getCurrentUser();
                                             FirebaseFirestore db = FirebaseFirestore.getInstance();
                                             String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-                                            db.collection("mechanics").document(uid).set(user, SetOptions.merge())
+                                            db.collection("Drivers").document(uid).set(user, SetOptions.merge())
                                                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                                                         @Override
                                                         public void onComplete(@NonNull Task<Void> task) {
                                                             if(task.isSuccessful()){
-                                                                Log.d(TAG, "onSuccess: successful Photo Firestore storage");
+                                                                Log.d(TAG, "onSuccess: successful licencePhoto Firestore storage");
                                                             }
                                                         }
                                                     }).addOnFailureListener(new OnFailureListener() {

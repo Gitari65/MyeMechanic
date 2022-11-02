@@ -43,8 +43,9 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+       // ActionBar actionBar = getSupportActionBar();
+      //  assert actionBar != null;
+      //  actionBar.hide();
 
         setContentView(R.layout.activity_driver_problem);
 

@@ -60,6 +60,7 @@ public class Mechanic_signup extends AppCompatActivity {
         setContentView(R.layout.activity_mechanic_signup);
 
         ActionBar actionBar = getSupportActionBar();
+        assert actionBar != null;
         actionBar.hide();
         //progerss
         final ProgressDialog pd = new ProgressDialog(Mechanic_signup.this);

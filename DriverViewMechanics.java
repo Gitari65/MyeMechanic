@@ -47,8 +47,8 @@ public class DriverViewMechanics extends AppCompatActivity implements  RecyclerV
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_driver_view_mechanics);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+        //ActionBar actionBar = getSupportActionBar();
+       // actionBar.hide();
         textView=findViewById(R.id.txtview_mechanicType);
 
 

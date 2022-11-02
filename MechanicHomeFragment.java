@@ -56,26 +56,35 @@ public class MechanicHomeFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
-ImageView imageView,imageViewmessage;
+ImageView imageViewaccount,imageView,imageViewmessage,imageViewrequests;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view=inflater.inflate(R.layout.fragment_mechanic_home, container, false);
 
-        imageView=view.findViewById(R.id.imgmechanic_requests);
+       imageView=view.findViewById(R.id.imgmechanic_account);
+        imageViewrequests=view.findViewById(R.id.imgmechanic_requests);
         imageViewmessage=view.findViewById(R.id.imgmechanic_chats);
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-            }
-        });
         imageViewmessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 replaceFragment(new ChatlistFragment());
 
+            }
+        });
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                replaceFragment(new MechanicProfileFragment());
+
+            }
+        });
+        imageViewrequests.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                replaceFragment(new MechViewRequestsFragment());
             }
         });
 

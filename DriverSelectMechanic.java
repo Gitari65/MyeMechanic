@@ -104,8 +104,8 @@ public class DriverSelectMechanic extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_driver_select_mechanic);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+       // ActionBar actionBar = getSupportActionBar();
+      //  actionBar.hide();
         String firstName = getIntent().getStringExtra("fName");
         String secondName = getIntent().getStringExtra("sName");
         String mechanicEmail = getIntent().getStringExtra("email");

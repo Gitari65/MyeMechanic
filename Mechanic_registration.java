@@ -74,8 +74,9 @@ public class Mechanic_registration extends AppCompatActivity  implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mechanic_registration);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+      //  ActionBar actionBar = getSupportActionBar();
+      //  assert actionBar != null;
+      //  actionBar.hide();
         mAuth =FirebaseAuth.getInstance();
         FirebaseUser userID  = mAuth.getCurrentUser();
         FirebaseFirestore db = FirebaseFirestore.getInstance();

@@ -41,6 +41,7 @@ Button button,button1;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mechanic_regstatus);
         ActionBar actionBar = getSupportActionBar();
+        assert actionBar != null;
         actionBar.hide();
         getMechanicVerificationStatus();
         textview=findViewById(R.id.registration_status);

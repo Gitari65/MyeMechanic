@@ -63,8 +63,8 @@ public class UploadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
      setContentView(R.layout.activity_upload);
 
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+      //  ActionBar actionBar = getSupportActionBar();
+       // actionBar.hide();
 
         // initialise views
         btnSelect = findViewById(R.id.btnChoose);

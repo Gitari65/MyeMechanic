@@ -7,9 +7,12 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -40,8 +43,11 @@ public class DriverLogin extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_driver_login);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+      //  ActionBar actionBar = getSupportActionBar();
+//        assert actionBar != null;
+       // actionBar.hide();
+
+
         mechanic_login_button=findViewById(R.id.mechanic_login_buttonD);
         mechanic_login_email=findViewById(R.id.mechanic_login_emailD);
         mechanic_login_pass=findViewById(R.id.mechanic_login_passwordD);

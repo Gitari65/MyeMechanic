@@ -55,7 +55,10 @@ import com.shashank.sony.fancytoastlib.FancyToast;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -174,8 +177,35 @@ public class DriverSelectMechanic extends AppCompatActivity {
         buttonrequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //FIREBASE REALTIME
+                DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy @ HH:mm", Locale.US);
+                String date = dateFormat.format(new Date());
+                String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+                FirebaseFirestore dbEn = FirebaseFirestore.getInstance();
+                Map<String, Object> userToy = new HashMap<>();
+                userToy.put("date", date);
+                userToy.put("carPart", carPart);
+                userToy.put("carModel", carModel);
+                userToy.put("carProblemDescription", carProblemDescription);
+                FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").child("Mechanics").child(current_userId).push().setValue(userToy).
+                        addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if(task.isSuccessful()){
+                                    FancyToast.makeText(getApplicationContext(), "request made wait", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+
+
+                                }
+
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+
+                            }
+                        });
                 //updating mechanics
-                String  userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+               // String  userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
                 FirebaseFirestore db3 = FirebaseFirestore.getInstance();
                 db3.collection("driverRequest").document(userId).update("mechanicId", current_userId)
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -353,7 +383,7 @@ buttonrequest.setVisibility(View.VISIBLE);
                                     Toast.makeText(getApplicationContext(), "go back and try other available mechs",Toast.LENGTH_LONG).show();
 
 
-
+//kahuko.alex19@students.dkut.ac.ke
 
                                 }
                             else{

@@ -3,7 +3,6 @@ package com.example.myemechanic;
 import static android.content.ContentValues.TAG;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -18,20 +17,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentChange;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -51,7 +51,7 @@ public class MechViewRequestsFragment extends Fragment implements RecyclerViewIn
     private RecyclerView recyclerView;
     private ArrayList<request_details> requestsArrayList;
     private mechanicsAdapter mechanicsAdapter2;
-    private AdapterRequests myRAdapter;
+    private AdapterRequests myRAdapter,adapter;
     private FirebaseFirestore db;
     ProgressDialog progressDialog;
     ProgressBar loadingPB;
@@ -101,21 +101,60 @@ public class MechViewRequestsFragment extends Fragment implements RecyclerViewIn
         requestsArrayList=new ArrayList<request_details>();
         myRAdapter = new AdapterRequests(getContext(),requestsArrayList,  this);
 
-        progressDialog=new ProgressDialog(getContext());
+        progressDialog=new ProgressDialog(getActivity());
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Fetching data....");
         progressDialog.show();
+MyEventChangeListener();
+
         recyclerView.setAdapter(myRAdapter);
-
-        EventChangeListener();
-
-
-
-
-
         return view;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        myRAdapter.notifyDataSetChanged();
+        if(progressDialog.isShowing()){
+            progressDialog.dismiss();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+    }
+
+    private void MyEventChangeListener(){
+    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("DriverRequest").child("Request");
+
+    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot snapshot) {
+            for (DataSnapshot request : snapshot.getChildren()){
+                //descriptions.add(request.child("serviceDescription").getValue().toString());
+              request_details requests=request.getValue(request_details.class);
+              requestsArrayList.add(requests);
+
+            }
+
+myRAdapter.notifyDataSetChanged();
+            if(progressDialog.isShowing()){
+                progressDialog.dismiss();
+            }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError error) {
+            progressDialog.dismiss();
+            if(progressDialog.isShowing()){
+                progressDialog.dismiss();
+            }
+
+        }
+    });
+}
     private void EventChangeListener() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
       String  userId=FirebaseAuth.getInstance().getCurrentUser().getUid();

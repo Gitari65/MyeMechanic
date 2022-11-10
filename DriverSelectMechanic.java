@@ -1,21 +1,27 @@
 package com.example.myemechanic;
 
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.content.ContentValues.TAG;
 import static android.graphics.Color.blue;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -38,6 +44,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,7 +79,7 @@ import java.util.Objects;
 public class DriverSelectMechanic extends AppCompatActivity {
     EditText editTextf, editTexts, editTexte, editTextl,editTextp;
     ImageView imageViewp, imageViewl;
-    LinearLayout layout;
+    LinearLayout layout,layoutPop;
 
     protected LocationManager locationManager;
     protected LocationListener locationListener;
@@ -81,12 +88,14 @@ public class DriverSelectMechanic extends AppCompatActivity {
     private LocationRequest mlocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private Location mLastLocation;
+    private long pressedTime;
     private FusedLocationProviderClient fusedLocationClient;
     TextView txtLat;
     Double driverCurrentLongitude;
     Double driverCurrentLatitude,mechanicCurrentLatitude,mechanicCurrentLongitude;
     Button button;
     String locality;
+    int i=0;
     String current_userId;
     String provider;
     protected String latitude, longitude;
@@ -109,10 +118,20 @@ public class DriverSelectMechanic extends AppCompatActivity {
     String userToken,mechanicToken,driverToken;
     ProgressDialog progressDialog;
     String garagename;
+    ProgressBar progressBar;
+    //location
+    private ArrayList permissionsToRequest;
+    private ArrayList permissionsRejected = new ArrayList();
+    private ArrayList permissions = new ArrayList();
+
+    private final static int ALL_PERMISSIONS_RESULT = 101;
+    LocationTrack locationTrack;
 
 
-    Button buttonCall, buttonBack,buttonMessage,buttonLocation,buttonrequest,buttoncancel;
+    Button buttonCall, buttonBack,buttonMessage,buttonMessagePop,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
     DocumentSnapshot documentSnapshot;
+    TextView textView;
+
 
 
     @Override
@@ -144,6 +163,8 @@ public class DriverSelectMechanic extends AppCompatActivity {
         editTexte = findViewById(R.id.verymechanic_emailD);
         buttonBack = findViewById(R.id.btnselectmech_back);
         buttonrequest=findViewById(R.id.btnsendRequest);
+
+
         buttoncancel=findViewById(R.id.btncancelRequestmech);
         buttonMessage=findViewById(R.id.btnchatMech);
         editTextf = findViewById(R.id.verymechanic_firstnameD);
@@ -172,6 +193,7 @@ public class DriverSelectMechanic extends AppCompatActivity {
         //String verificationStatustext = editTextv.getText().toString().trim();\
 
         layout.setVisibility(View.GONE);
+        RequestPopUpWindow();
         //back intent
         buttonBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -189,52 +211,46 @@ public class DriverSelectMechanic extends AppCompatActivity {
         buttonrequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RequestPopUpWindow();
-                //FIREBASE REALTIME
-                DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy @ HH:mm", Locale.US);
-                String date = dateFormat.format(new Date());
-                String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-                FirebaseFirestore dbEn = FirebaseFirestore.getInstance();
-                Map<String, Object> userToy = new HashMap<>();
-                userToy.put("date", date);
-                userToy.put("carPart", carPart);
-                userToy.put("carModel", carModel);
-                userToy.put("carProblemDescription", carProblemDescription);
-                FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").child("Mechanics").child(current_userId).push().setValue(userToy).
-                        addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if(task.isSuccessful()){
-                                    FancyToast.makeText(getApplicationContext(), "request made wait", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                if (i==0){
+                    i++;
+                    mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
 
+                    //FIREBASE REALTIME
+                    DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy @ HH:mm", Locale.US);
+                    String date = dateFormat.format(new Date());
+                    String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    FirebaseFirestore dbEn = FirebaseFirestore.getInstance();
+                    Map<String, Object> userToy = new HashMap<>();
+                    userToy.put("date", date);
+                    userToy.put("carPart", carPart);
+                    userToy.put("carModel", carModel);
+                    userToy.put("driversId",userId);
+                    userToy.put("carProblemDescription", carProblemDescription);
+                    FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Mechanics").child(current_userId).push().setValue(userToy).
+                            addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if(task.isSuccessful()){
+                                        FancyToast.makeText(getApplicationContext(), "request made wait", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+
+
+                                    }
 
                                 }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
 
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
+                                }
+                            });
 
-                            }
-                        });
-                //updating mechanics
-               // String  userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-                FirebaseFirestore db3 = FirebaseFirestore.getInstance();
-                db3.collection("driverRequest").document(userId).update("mechanicId", current_userId)
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                Log.d(TAG, "onSuccess: spinner stored");
+                }
+                else{
+                   // RequestPopUpWindow();
+                    mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
+RequestProcessingDetails();
+                }
 
-
-                                Toast.makeText(getApplicationContext(),"request sent",Toast.LENGTH_SHORT).show();
-                                buttonrequest.setText("waiting....");
-                                buttoncancel.setVisibility(View.VISIBLE);
-                                RequestProcessingDetails();
-
-
-                            }
-                        });
 
 
             }
@@ -367,12 +383,126 @@ buttonrequest.setVisibility(View.VISIBLE);
                     }
                 });
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        RequestProcessingDetails();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (pressedTime + 2000>System.currentTimeMillis()){
+            super.onBackPressed();
+
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "press back again to view more mechanics",Toast.LENGTH_SHORT).show();
+
+
+        }
+
+
+
+    }
+
+    public void RequestPopUpWindow(){
+
+        // Get the application context
+        mContext = getApplicationContext();
+
+        // Get the activity
+        mActivity = DriverSelectMechanic.this;
+
+        // Get the widgets reference from XML layout
+        mRelativeLayout =  findViewById(R.id.rl);
+        mButton = (Button) findViewById(R.id.btnsendRequest);
+
+
+        // Set a click listener for the text view
+
+        // Initialize a new instance of LayoutInflater service
+        LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(LAYOUT_INFLATER_SERVICE);
+
+        // Inflate the custom layout/view
+        View customView = inflater.inflate(R.layout.custom_layout,null);
+
+                /*
+                    public PopupWindow (View contentView, int width, int height)
+                        Create a new non focusable popup window which can display the contentView.
+                        The dimension of the window must be passed to this constructor.
+
+                        The popup does not provide any background. This should be handled by
+                        the content view.
+
+                    Parameters
+                        contentView : the popup's content
+                        width : the popup's width
+                        height : the popup's height
+                */
+        // Initialize a new instance of popup window
+        mPopupWindow = new PopupWindow(
+                customView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+
+        // Set an elevation value for popup window
+        // Call requires API level 21
+        if(Build.VERSION.SDK_INT>=21){
+            mPopupWindow.setElevation(5.0f);
+        }
+
+        // Get a reference for the custom view close button
+        ImageButton closeButton = (ImageButton) customView.findViewById(R.id.ib_close);
+        textView=customView.findViewById(R.id.textViewRequestStatus);
+        layoutPop=customView.findViewById(R.id.layoutDetailsPop);
+        buttonLocationPop=customView.findViewById(R.id.btnfindMechLocationPop);
+        buttonMessagePop=customView.findViewById(R.id.btnchatMechPop);
+        btnCancelPop=customView.findViewById(R.id.buttonCancelrequestPop);
+        progressBar=customView.findViewById(R.id.requestProgressBarPop);
+
+
+        // Set a click listener for the popup window close button
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Dismiss the popup window
+                mPopupWindow.dismiss();
+            }
+        });
+       // RequestProcessingDetails();
+
+                /*
+                    public void showAtLocation (View parent, int gravity, int x, int y)
+                        Display the content view in a popup window at the specified location. If the
+                        popup window cannot fit on screen, it will be clipped.
+                        Learn WindowManager.LayoutParams for more information on how gravity and the x
+                        and y parameters are related. Specifying a gravity of NO_GRAVITY is similar
+                        to specifying Gravity.LEFT | Gravity.TOP.
+
+                    Parameters
+                        parent : a parent view to get the getWindowToken() token from
+                        gravity : the gravity which controls the placement of the popup window
+                        x : the popup's x location offset
+                        y : the popup's y location offset
+                */
+        // Finally, show the popup window at the center location of root relative layout
+//        mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
+
+    }
     public void RequestProcessingDetails(){
         FirebaseAuth mAuth= FirebaseAuth.getInstance();
         FirebaseUser userID  = mAuth.getCurrentUser();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String current_userId = getIntent().getStringExtra("currentuserid");
+        String current_userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
 
 
@@ -385,16 +515,25 @@ buttonrequest.setVisibility(View.VISIBLE);
                             if (documentSnapshot.exists()) {
                                String status= documentSnapshot.getString("status");
                             if (Objects.equals(status, "accepted")){
+                                Log.d(TAG, "onComplete: driverRequest Pop**");
                                 buttonrequest.setVisibility(View.GONE);
                                 layout.setVisibility(View.VISIBLE);
+
+                                textView.setText("Accepted");
+                                textView.setTextColor(Color.GREEN);
+
+                                progressBar.setVisibility(View.GONE);
+                                layoutPop.setVisibility(View.VISIBLE);
+                                btnCancelPop.setVisibility(View.GONE);
+
 
 
                             }
                                 if (Objects.equals(status, "rejected")){
-                                    buttonrequest.setText("Denied XX");
-                                    Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic unavailable",Toast.LENGTH_LONG).show();
+                                    textView.setText("Denied XX");
+                                    Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic unavailable",Toast.LENGTH_SHORT).show();
                                     Toast.makeText(getApplicationContext(), "go back and try other available mechs",Toast.LENGTH_LONG).show();
-
+                                btnCancelPop.setVisibility(View.VISIBLE);
 
 //kahuko.alex19@students.dkut.ac.ke
 
@@ -412,83 +551,10 @@ buttonrequest.setVisibility(View.VISIBLE);
 
                     }
                 });
-    }
-    public void RequestPopUpWindow(){
-
-        // Get the application context
-        mContext = getApplicationContext();
-
-        // Get the activity
-        mActivity = DriverSelectMechanic.this;
-
-        // Get the widgets reference from XML layout
-        mRelativeLayout =  findViewById(R.id.rl);
-        mButton = (Button) findViewById(R.id.btnsendRequest);
-
-        // Set a click listener for the text view
-
-                // Initialize a new instance of LayoutInflater service
-                LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(LAYOUT_INFLATER_SERVICE);
-
-                // Inflate the custom layout/view
-                View customView = inflater.inflate(R.layout.custom_layout,null);
-
-                /*
-                    public PopupWindow (View contentView, int width, int height)
-                        Create a new non focusable popup window which can display the contentView.
-                        The dimension of the window must be passed to this constructor.
-
-                        The popup does not provide any background. This should be handled by
-                        the content view.
-
-                    Parameters
-                        contentView : the popup's content
-                        width : the popup's width
-                        height : the popup's height
-                */
-                // Initialize a new instance of popup window
-                mPopupWindow = new PopupWindow(
-                        customView,
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                );
-
-                // Set an elevation value for popup window
-                // Call requires API level 21
-                if(Build.VERSION.SDK_INT>=21){
-                    mPopupWindow.setElevation(5.0f);
-                }
-
-                // Get a reference for the custom view close button
-                ImageButton closeButton = (ImageButton) customView.findViewById(R.id.ib_close);
-
-                // Set a click listener for the popup window close button
-                closeButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        // Dismiss the popup window
-                        mPopupWindow.dismiss();
-                    }
-                });
-
-                /*
-                    public void showAtLocation (View parent, int gravity, int x, int y)
-                        Display the content view in a popup window at the specified location. If the
-                        popup window cannot fit on screen, it will be clipped.
-                        Learn WindowManager.LayoutParams for more information on how gravity and the x
-                        and y parameters are related. Specifying a gravity of NO_GRAVITY is similar
-                        to specifying Gravity.LEFT | Gravity.TOP.
-
-                    Parameters
-                        parent : a parent view to get the getWindowToken() token from
-                        gravity : the gravity which controls the placement of the popup window
-                        x : the popup's x location offset
-                        y : the popup's y location offset
-                */
-                // Finally, show the popup window at the center location of root relative layout
-                mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
 
     }
+
+
     public  void mainLocationUpdate(){
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(DriverSelectMechanic.this);
         //button=findViewById(R.id.buttonGoogle);
@@ -521,9 +587,10 @@ buttonrequest.setVisibility(View.VISIBLE);
     public  void uriParsingGoogleMapsIntent(){
         //Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://maps.google.com/maps?f=d&daddr="+destinationCityName));
 //        String uri = "http://maps.google.com/maps?saddr="+driverCurrentLatitude+","+driverCurrentLongitude+"+&daddr="+mechanicCurrentLatitude+","+mechanicCurrentLongitude;
-        String uri = "http://maps.google.com/maps?saddr="+driverCurrentLatitude+","+driverCurrentLongitude+"+&daddr="+mechanicCurrentLatitude+","+mechanicCurrentLongitude;
+        //String uri = "http://maps.google.com/maps?saddr="+driverCurrentLatitude+","+driverCurrentLongitude+"+&daddr="+mechanicCurrentLatitude+","+mechanicCurrentLongitude;
 //String strUri = "http://maps.google.com/maps?q=loc:" + latitude + "," + longitude + " (" + yourLocationName + ")";
-        Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(uri));
+        String strUri = "http://maps.google.com/maps?q=loc:" + driverCurrentLatitude + "," + driverCurrentLongitude + " (" + "Label which you want" + ")";
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(strUri));
         intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
         startActivity(intent);
     }
@@ -577,15 +644,7 @@ buttonrequest.setVisibility(View.VISIBLE);
                 });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 101) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                callPhoneNumber();
-            }
-        }
-    }
+
 
     public void callPhoneNumber()
     {
@@ -627,6 +686,126 @@ buttonrequest.setVisibility(View.VISIBLE);
         {
             ex.printStackTrace();
         }
+    }
+    ///location
+    private  void  MainLocationCode(){
+        permissions.add(ACCESS_FINE_LOCATION);
+        permissions.add(ACCESS_COARSE_LOCATION);
+
+        permissionsToRequest = findUnAskedPermissions(permissions);
+        //get the permissions we have asked for before but are not granted..
+        //we will store this in a global list to access later.
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+
+            if (permissionsToRequest.size() > 0)
+                requestPermissions((String[]) permissionsToRequest.toArray(new String[permissionsToRequest.size()]), ALL_PERMISSIONS_RESULT);
+        }
+
+
+                locationTrack = new LocationTrack(DriverSelectMechanic.this);
+
+
+                if (locationTrack.canGetLocation()) {
+
+
+                    double driverCurrentLongitude = locationTrack.getLongitude();
+                    double driverCurrentLatitude = locationTrack.getLatitude();
+                    updateLocationToFirestore();
+
+                    //Toast.makeText(getApplicationContext(), "Longitude:" + Double.toString(longitude) + "\nLatitude:" + Double.toString(latitude), Toast.LENGTH_SHORT).show();
+                } else {
+
+                    locationTrack.showSettingsAlert();
+                }
+
+
+    }
+    private ArrayList findUnAskedPermissions(ArrayList wanted) {
+        ArrayList result = new ArrayList();
+
+        for (Object perm : wanted) {
+            if (!hasPermission(perm)) {
+                result.add(perm);
+            }
+        }
+
+        return result;
+    }
+
+    private boolean hasPermission(Object permission) {
+        if (canMakeSmores()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                return (checkSelfPermission((String) permission) == PackageManager.PERMISSION_GRANTED);
+            }
+        }
+        return true;
+    }
+
+    private boolean canMakeSmores() {
+        return (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1);
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 101) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                callPhoneNumber();
+            }
+        }
+        switch (requestCode) {
+
+            case ALL_PERMISSIONS_RESULT:
+                for (Object perms : permissionsToRequest) {
+                    if (!hasPermission(perms)) {
+                        permissionsRejected.add(perms);
+                    }
+                }
+
+                if (permissionsRejected.size() > 0) {
+
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (shouldShowRequestPermissionRationale((String) permissionsRejected.get(0))) {
+                            showMessageOKCancel("These permissions are mandatory for the application. Please allow access.",
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                                requestPermissions((String[]) permissionsRejected.toArray(new String[permissionsRejected.size()]), ALL_PERMISSIONS_RESULT);
+                                            }
+                                        }
+                                    });
+                            return;
+                        }
+                    }
+
+                }
+
+                break;
+        }
+
+    }
+
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(DriverSelectMechanic.this)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        locationTrack.stopListener();
     }
 
     public void updateLocationToFirestore(){
@@ -715,11 +894,7 @@ buttonrequest.setVisibility(View.VISIBLE);
         });
 
     }
-    public void pushNotifications(){
-        FCmSendd.pushNotification(this,
-                "e-mechanic request",userToken,"Mechanic request");
 
-    }
 
     public void updateToken() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();

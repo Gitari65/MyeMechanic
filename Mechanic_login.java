@@ -117,7 +117,7 @@ String Email=mechanic_login_email.getText().toString().trim();
                 }
                 else {
                     getMechanicVerificationStatus();
-                    adminUserTypeVerification();
+                   // adminUserTypeVerification();
                    pd.dismiss();
 
 
@@ -192,7 +192,6 @@ DocumentSnapshot documentSnapshot5;
                 if (task5.isSuccessful()) {
                     documentSnapshot5 = task5.getResult();
                     if (documentSnapshot5.exists()) {
-                        Toast.makeText(getApplicationContext(),"verification may take 72hrs",Toast.LENGTH_LONG).show();
 
                         String status_text= documentSnapshot5.getString("registrationStatus");
 
@@ -200,13 +199,15 @@ DocumentSnapshot documentSnapshot5;
                             Intent intent= new Intent(getApplicationContext(), MainActivity.class);
                             startActivity(intent);
                         }else{
+                            Toast.makeText(getApplicationContext(),"verification may take 72hrs",Toast.LENGTH_LONG).show();
+
                             Intent intent= new Intent(getApplicationContext(), Mechanic_regstatus.class);
                             startActivity(intent);
                         }
                     }
                     else {
                         Log.d(TAG, "onComplete: details not found");
-                        Toast.makeText(getApplicationContext(),"failed!!check email or password",Toast.LENGTH_LONG).show();
+                       adminUserTypeVerification();
 
                     }
                 }}

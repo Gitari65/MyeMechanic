@@ -140,7 +140,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                                             Intent intent1 = new Intent(getApplicationContext(), DriverViewMechanics.class);
                                             intent1.putExtra("carPart", carPart);
                                             intent1.putExtra("driverId", user_id);
-                                            // intent.putExtra("carProblemDescription",carProblemDescription);
+                                             intent1.putExtra("carProblemDescription",carProblemDescription);
                                             //intent.putExtra("carModel", "Suzuki");
                                             startActivity(intent1);
                                         }
@@ -212,6 +212,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                         userToy1.put("status", "");
                         userToy1.put("date", date);
 
+
                         FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").push().setValue(userToy1)
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
@@ -221,12 +222,33 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
 
                                             Intent intent1 = new Intent(getApplicationContext(), DriverViewMechanics.class);
                                             intent1.putExtra("carModel", carModel);
+                                            intent1.putExtra("carPart", carPart);
+                                            intent1.putExtra("driverId", user_id);
+                                            intent1.putExtra("carProblemDescription",carProblemDescription);
+
+
                                             startActivity(intent1);
                                         }
                                     }
                                 });
 
+                        {
+                            //cancelling request
+                            String Current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+                            FirebaseFirestore db3 = FirebaseFirestore.getInstance();
+                            db3.collection("driverRequest").document(Current_userId).set(userToy1)
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void unused) {
+                                            Log.d(TAG, "onSuccess: spinner stored");
 
+                                           // Toast.makeText(getApplicationContext(), "request cancelled xx",Toast.LENGTH_SHORT).show();
+
+
+                                        }
+                                    });
+
+                        }
 
                     }
                 });

@@ -77,6 +77,7 @@ public class DriverViewMechanics extends AppCompatActivity implements  RecyclerV
 
 
     }
+    //kenedychomba87@gmail.com
 
     public void getDriverProblemDetails(){
         FirebaseAuth mAuth= FirebaseAuth.getInstance();
@@ -100,7 +101,7 @@ public class DriverViewMechanics extends AppCompatActivity implements  RecyclerV
                                     FirebaseFirestore db = FirebaseFirestore.getInstance();
                                     // String carPart=getIntent().getStringExtra("carPart");
                                     CollectionReference mydbRef = db.collection("mechanics");
-                                assert carPart != null;
+
                                 db.collection("mechanics").whereEqualTo(carPart, "True").addSnapshotListener(new EventListener<QuerySnapshot>() {
                                         @Override
                                         public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {

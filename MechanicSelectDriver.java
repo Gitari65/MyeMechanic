@@ -4,9 +4,13 @@ import static android.content.ContentValues.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -27,6 +31,7 @@ public class MechanicSelectDriver extends AppCompatActivity {
     DocumentSnapshot documentSnapshot;
     TextView textViewphoneno,textViewfName,textViewEmail,textViewsName;
     ImageView imageView;
+    String driverCurrentLatitude,driverCurrentLongitude;
     Button buttonCall,buttonLocate,buttonChat,buttonBack;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +48,31 @@ public class MechanicSelectDriver extends AppCompatActivity {
         textViewsName=findViewById(R.id.verydriver_secondnameD);
         imageView=findViewById(R.id.driver_profilePicture);
         getDriverDetails();
+        buttonLocate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                uriParsingGoogleMapsIntent();
+            }
+        });
+
+        //message
+        buttonChat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String current_userId = getIntent().getStringExtra("driversId");
+                Intent intent = new Intent(getApplicationContext(), MainChatActivity.class);
+                intent.putExtra("uid", current_userId);
+                startActivity(intent);
+            }
+        });
+        //call
+        buttonCall.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callPhoneNumber();
+            }
+        });
+
         buttonBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -72,7 +102,12 @@ public class MechanicSelectDriver extends AppCompatActivity {
                                 String driverSecondName= documentSnapshot.getString("driverSecondName");
                                 String driverEmail= documentSnapshot.getString("driverEmail");
                                 String driverPhoneNumber= documentSnapshot.getString("driverPhoneNumber");
-                               // String imageUrl=documentSnapshot.getString("imageUrl");
+
+                                String driverCurrentLatitude= documentSnapshot.getString("driverCurrentLatitude");
+                                String driverCurrentLongitude= documentSnapshot.getString("driverCurrentLongitude");
+
+
+                                // String imageUrl=documentSnapshot.getString("imageUrl");
 
                                 textViewEmail.setText(driverEmail);
                                 textViewfName.setText(driverFirstName);
@@ -96,4 +131,67 @@ public class MechanicSelectDriver extends AppCompatActivity {
                     }
                 });
     }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 101) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                callPhoneNumber();
+            }
+        }
+    }
+
+    public void callPhoneNumber()
+    {
+        try
+        {
+            if(Build.VERSION.SDK_INT > 22)
+            {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MechanicSelectDriver.this, new String[]{Manifest.permission.CALL_PHONE}, 101);
+                    return;
+                }
+
+                textViewphoneno=findViewById(R.id.verydriver_phonenumberD);
+                String mechPhoneNumber=textViewphoneno.getText().toString();
+
+
+                // Getting instance of Intent with action as ACTION_CALL
+                Intent phone_intent = new Intent(Intent.ACTION_CALL);
+
+                // Set data of Intent through Uri by parsing phone number
+                phone_intent.setData(Uri.parse("tel:" + mechPhoneNumber));
+
+                // start Intent
+                startActivity(phone_intent);
+
+            }
+            else {
+                textViewphoneno=findViewById(R.id.verydriver_phonenumberD);
+                String mechPhoneNumber=textViewphoneno.getText().toString();
+                // Getting instance of Intent with action as ACTION_CALL
+                Intent phone_intent = new Intent(Intent.ACTION_CALL);
+                // Set data of Intent through Uri by parsing phone number
+                phone_intent.setData(Uri.parse("tel:" + mechPhoneNumber));
+                // start Intent
+                startActivity(phone_intent);
+            }
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+    //maps intent
+    public  void uriParsingGoogleMapsIntent(){
+        //Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://maps.google.com/maps?f=d&daddr="+destinationCityName));
+//        String uri = "http://maps.google.com/maps?saddr="+driverCurrentLatitude+","+driverCurrentLongitude+"+&daddr="+mechanicCurrentLatitude+","+mechanicCurrentLongitude;
+        //String uri = "http://maps.google.com/maps?saddr="+driverCurrentLatitude+","+driverCurrentLongitude+"+&daddr="+mechanicCurrentLatitude+","+mechanicCurrentLongitude;
+//String strUri = "http://maps.google.com/maps?q=loc:" + latitude + "," + longitude + " (" + yourLocationName + ")";
+        String strUri = "http://maps.google.com/maps?q=loc:" + driverCurrentLatitude + "," + driverCurrentLongitude + " (" + "Label which you want" + ")";
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(strUri));
+        intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+        startActivity(intent);
+    }
+
 }

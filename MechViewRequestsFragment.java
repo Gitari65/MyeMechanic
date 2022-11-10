@@ -127,7 +127,8 @@ MyEventChangeListener();
     }
 
     private void MyEventChangeListener(){
-    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("DriverRequest").child("Request");
+        String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("DriverRequest").child("Mechanics").child(userId);
 
     databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
         @Override

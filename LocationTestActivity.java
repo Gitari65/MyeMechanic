@@ -1,84 +1,158 @@
 package com.example.myemechanic;
-
-import android.Manifest;
-import android.app.AlertDialog;
-import android.content.Context;
+import android.annotation.TargetApi;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
-import android.provider.Settings;
+import android.os.Build;
 
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
 public class LocationTestActivity extends AppCompatActivity {
-    private static final int REQUEST_LOCATION = 1;
-    Button btnGetLocation;
-    TextView showLocation;
-    LocationManager locationManager;
-    String latitude, longitude;
+
+
+    private ArrayList permissionsToRequest;
+    private ArrayList permissionsRejected = new ArrayList();
+    private ArrayList permissions = new ArrayList();
+
+    private final static int ALL_PERMISSIONS_RESULT = 101;
+    LocationTrack locationTrack;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_test);
-        ActivityCompat.requestPermissions( this,
-                new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
-        showLocation = findViewById(R.id.showLocation);
-        btnGetLocation = findViewById(R.id.btnGetLocation);
-        btnGetLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-               LocationManager nManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                if (!nManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                    OnGPS();
-                } else {
-                    getLocation();
-                }
-            }
-        });
-    }
-    private void OnGPS() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Enable GPS").setCancelable(false).setPositiveButton("Yes", new  DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-            }
-        }).setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        final AlertDialog alertDialog = builder.create();
-        alertDialog.show();
-    }
-    private void getLocation() {
-        if (ActivityCompat.checkSelfPermission(
-                LocationTestActivity.this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                LocationTestActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
-        } else {
-            if(locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER) && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
-            if (locationGPS != null) {
-                double lat = locationGPS.getLatitude();
-                double longi = locationGPS.getLongitude();
-                latitude = String.valueOf(lat);
-                longitude = String.valueOf(longi);
-                showLocation.setText("Your Location: " + "\n" + "Latitude: " + latitude + "\n" + "Longitude: " + longitude);
-            } else {
-                Toast.makeText(this, "Unable to find location.", Toast.LENGTH_SHORT).show();
+        permissions.add(ACCESS_FINE_LOCATION);
+        permissions.add(ACCESS_COARSE_LOCATION);
+
+        permissionsToRequest = findUnAskedPermissions(permissions);
+        //get the permissions we have asked for before but are not granted..
+        //we will store this in a global list to access later.
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+
+            if (permissionsToRequest.size() > 0)
+                requestPermissions((String[]) permissionsToRequest.toArray(new String[permissionsToRequest.size()]), ALL_PERMISSIONS_RESULT);
+        }
+
+
+        Button btn = (Button) findViewById(R.id.btnGetLocation);
+
+
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                locationTrack = new LocationTrack(LocationTestActivity.this);
+
+
+                if (locationTrack.canGetLocation()) {
+
+
+                    double longitude = locationTrack.getLongitude();
+                    double latitude = locationTrack.getLatitude();
+
+                    Toast.makeText(getApplicationContext(), "Longitude:" + Double.toString(longitude) + "\nLatitude:" + Double.toString(latitude), Toast.LENGTH_SHORT).show();
+                } else {
+
+                    locationTrack.showSettingsAlert();
+                }
+
+            }
+        });
+
+    }
+
+
+    private ArrayList findUnAskedPermissions(ArrayList wanted) {
+        ArrayList result = new ArrayList();
+
+        for (Object perm : wanted) {
+            if (!hasPermission(perm)) {
+                result.add(perm);
             }
         }
+
+        return result;
     }
-}}
+
+    private boolean hasPermission(Object permission) {
+        if (canMakeSmores()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                return (checkSelfPermission((String) permission) == PackageManager.PERMISSION_GRANTED);
+            }
+        }
+        return true;
+    }
+
+    private boolean canMakeSmores() {
+        return (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1);
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.M)
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+
+            case ALL_PERMISSIONS_RESULT:
+                for (Object perms : permissionsToRequest) {
+                    if (!hasPermission(perms)) {
+                        permissionsRejected.add(perms);
+                    }
+                }
+
+                if (permissionsRejected.size() > 0) {
+
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (shouldShowRequestPermissionRationale((String) permissionsRejected.get(0))) {
+                            showMessageOKCancel("These permissions are mandatory for the application. Please allow access.",
+                                    new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                                requestPermissions((String[]) permissionsRejected.toArray(new String[permissionsRejected.size()]), ALL_PERMISSIONS_RESULT);
+                                            }
+                                        }
+                                    });
+                            return;
+                        }
+                    }
+
+                }
+
+                break;
+        }
+
+    }
+
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(LocationTestActivity.this)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        locationTrack.stopListener();
+    }
+}

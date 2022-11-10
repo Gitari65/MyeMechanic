@@ -140,7 +140,7 @@ public class DriverLogin extends AppCompatActivity {
                 if (task5.isSuccessful()) {
                     documentSnapshot5 = task5.getResult();
                     if (documentSnapshot5.exists()) {
-                        Intent intent= new Intent(getApplicationContext(), DriversHomeActivity.class);
+                        Intent intent= new Intent(getApplicationContext(), MpesaPaymentActivity.class);
                         startActivity(intent);}
                     else {
                         adminUserTypeVerification();

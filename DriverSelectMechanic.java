@@ -76,7 +76,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-public class DriverSelectMechanic extends AppCompatActivity {
+public class DriverSelectMechanic extends AppCompatActivity  {
     EditText editTextf, editTexts, editTexte, editTextl,editTextp;
     ImageView imageViewp, imageViewl;
     LinearLayout layout,layoutPop;
@@ -208,11 +208,14 @@ public class DriverSelectMechanic extends AppCompatActivity {
         String carModel=getIntent().getStringExtra("carModel");
         String carPart=getIntent().getStringExtra("carPart");
         String driverId=getIntent().getStringExtra("driverId");
+        // REQUEST
         buttonrequest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (i==0){
                     i++;
+                    MainLocationCode();
+                    MatchedMechanicId();
                     mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
 
                     //FIREBASE REALTIME
@@ -284,7 +287,7 @@ buttonrequest.setVisibility(View.VISIBLE);
             @Override
             public void onClick(View v) {
                 String current_userId = getIntent().getStringExtra("currentuserid");
-                Intent intent = new Intent(getApplicationContext(), MainChatActivity.class);
+                Intent intent = new Intent(getApplicationContext(), FloatingChatActivity.class);
                 intent.putExtra("uid", current_userId);
                 startActivity(intent);
             }
@@ -344,6 +347,25 @@ buttonrequest.setVisibility(View.VISIBLE);
 
     }
     //methods
+    public void MatchedMechanicId(){
+        //mech id update on request
+        String Current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db3 = FirebaseFirestore.getInstance();
+        String current_userId = getIntent().getStringExtra("currentuserid");
+
+        db3.collection("driverRequest").document(Current_userId).
+                update("mechanicId",current_userId,"status","sent")
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d(TAG, "onSuccess: spinner stored");
+
+                        // Toast.makeText(getApplicationContext(), "request cancelled xx",Toast.LENGTH_SHORT).show();
+
+
+                    }
+                });
+    }
     public void getMechanicDetails(){
        FirebaseAuth mAuth= FirebaseAuth.getInstance();
         FirebaseUser userID  = mAuth.getCurrentUser();
@@ -502,11 +524,11 @@ buttonrequest.setVisibility(View.VISIBLE);
         FirebaseUser userID  = mAuth.getCurrentUser();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String current_userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String current_userIdm = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
 
 
-        db.collection("driverRequest").document(current_userId).get()
+        db.collection("driverRequest").document(current_userIdm).get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -514,6 +536,8 @@ buttonrequest.setVisibility(View.VISIBLE);
                             documentSnapshot = task.getResult();
                             if (documentSnapshot.exists()) {
                                String status= documentSnapshot.getString("status");
+                                String mechId= documentSnapshot.getString("mechanicId");
+
                             if (Objects.equals(status, "accepted")){
                                 Log.d(TAG, "onComplete: driverRequest Pop**");
                                 buttonrequest.setVisibility(View.GONE);
@@ -538,10 +562,22 @@ buttonrequest.setVisibility(View.VISIBLE);
 //kahuko.alex19@students.dkut.ac.ke
 
                                 }
-                            else{
-                                buttonrequest.setText("waiting....");
-                                buttoncancel.setVisibility(View.VISIBLE);
-                            }
+                                if (Objects.equals(status, "sent")){
+                                    Log.d(TAG, "onComplete: driverRequest Pop**");
+                                    buttonrequest.setVisibility(View.GONE);
+                                    layout.setVisibility(View.VISIBLE);
+
+                                    buttonrequest.setText("waiting....");
+                                    buttoncancel.setVisibility(View.VISIBLE);
+                                    progressBar.setVisibility(View.VISIBLE);
+                                    layoutPop.setVisibility(View.VISIBLE);
+                                    btnCancelPop.setVisibility(View.GONE);
+
+
+
+                                }
+
+
                             }
                         }
                     }
@@ -711,8 +747,8 @@ buttonrequest.setVisibility(View.VISIBLE);
                 if (locationTrack.canGetLocation()) {
 
 
-                    double driverCurrentLongitude = locationTrack.getLongitude();
-                    double driverCurrentLatitude = locationTrack.getLatitude();
+                     driverCurrentLongitude = locationTrack.getLongitude();
+                    driverCurrentLatitude = locationTrack.getLatitude();
                     updateLocationToFirestore();
 
                     //Toast.makeText(getApplicationContext(), "Longitude:" + Double.toString(longitude) + "\nLatitude:" + Double.toString(latitude), Toast.LENGTH_SHORT).show();

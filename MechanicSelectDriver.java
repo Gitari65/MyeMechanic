@@ -27,12 +27,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+
 public class MechanicSelectDriver extends AppCompatActivity {
     DocumentSnapshot documentSnapshot;
     TextView textViewphoneno,textViewfName,textViewEmail,textViewsName;
     ImageView imageView;
-    String driverCurrentLatitude,driverCurrentLongitude;
+    Double driverCurrentLatitude,driverCurrentLongitude;
     Button buttonCall,buttonLocate,buttonChat,buttonBack;
+    //kenedychomba87@gmail.com
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,19 +50,14 @@ public class MechanicSelectDriver extends AppCompatActivity {
         textViewsName=findViewById(R.id.verydriver_secondnameD);
         imageView=findViewById(R.id.driver_profilePicture);
         getDriverDetails();
-        buttonLocate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                uriParsingGoogleMapsIntent();
-            }
-        });
+
 
         //message
         buttonChat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String current_userId = getIntent().getStringExtra("driversId");
-                Intent intent = new Intent(getApplicationContext(), MainChatActivity.class);
+                Intent intent = new Intent(getApplicationContext(), FloatingChatActivity.class);
                 intent.putExtra("uid", current_userId);
                 startActivity(intent);
             }
@@ -103,8 +100,14 @@ public class MechanicSelectDriver extends AppCompatActivity {
                                 String driverEmail= documentSnapshot.getString("driverEmail");
                                 String driverPhoneNumber= documentSnapshot.getString("driverPhoneNumber");
 
-                                String driverCurrentLatitude= documentSnapshot.getString("driverCurrentLatitude");
-                                String driverCurrentLongitude= documentSnapshot.getString("driverCurrentLongitude");
+                               driverCurrentLatitude= documentSnapshot.getDouble("driverCurrentLatitude");
+                                driverCurrentLongitude= documentSnapshot.getDouble("driverCurrentLongitude");
+                                buttonLocate.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        uriParsingGoogleMapsIntent();
+                                    }
+                                });
 
 
                                 // String imageUrl=documentSnapshot.getString("imageUrl");

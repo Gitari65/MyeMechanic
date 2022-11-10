@@ -117,7 +117,7 @@ String Email=mechanic_login_email.getText().toString().trim();
                 }
                 else {
                     getMechanicVerificationStatus();
-                   // adminUserTypeVerification();
+                    adminUserTypeVerification();
                    pd.dismiss();
 
 
@@ -207,7 +207,7 @@ DocumentSnapshot documentSnapshot5;
                     }
                     else {
                         Log.d(TAG, "onComplete: details not found");
-                       adminUserTypeVerification();
+                        Toast.makeText(getApplicationContext(),"failed!!check email or password",Toast.LENGTH_LONG).show();
 
                     }
                 }}

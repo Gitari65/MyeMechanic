@@ -134,13 +134,13 @@ public class MainChatActivity extends AppCompatActivity {
             }
         });
 
-        Query userquery = users.orderByChild("userId").equalTo(uid);
+        Query userquery = users.orderByChild("userid").equalTo(uid);
         userquery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 // retrieve user data
                 for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
-                    String nameh = "" + dataSnapshot1.child("name").getValue();
+                    String nameh = "" + dataSnapshot1.child("firstNamee").getValue();
                     image = "" + dataSnapshot1.child("image").getValue();
                     String onlinestatus = "" + dataSnapshot1.child("onlineStatus").getValue();
                     String typingto = "" + dataSnapshot1.child("typingTo").getValue();

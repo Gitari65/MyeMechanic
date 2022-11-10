@@ -121,6 +121,12 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                             editText.requestFocus();
                             return;
                         }
+                        if (imageView == null) {
+                            Toast.makeText(getApplicationContext(),"Kindly Attach a photo",Toast.LENGTH_SHORT).show();
+                              buttonChoose.setError("upload a photo of the problem");
+                         buttonChoose.requestFocus();
+                            return;
+                        }
                         //storing spinner
                     final   String user_id = FirebaseAuth.getInstance().getCurrentUser().getUid();
                         carProblemDescription = editText.getText().toString();
@@ -306,6 +312,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
         StorageReference storageRef = FirebaseStorage.getInstance().getReference("Images").child(fileName);
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
         byte[] data = byteArrayOutputStream.toByteArray();
 
@@ -355,6 +362,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode==CAMERA_REQUEST && resultCode== Activity.RESULT_OK){
             bitmap = (Bitmap) data.getExtras().get("data");
+
             imageView.setImageBitmap(bitmap);
         }
     }

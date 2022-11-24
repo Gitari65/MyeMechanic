@@ -157,6 +157,7 @@ public class DriverViewMechanics extends AppCompatActivity implements  RecyclerV
         String carModel=getIntent().getStringExtra("carModel");
         String carPart=getIntent().getStringExtra("carPart");
         String driverId=getIntent().getStringExtra("driverId");
+        String childKey=getIntent().getStringExtra("childKey");
 
         Intent intent = new Intent(getApplicationContext(), DriverSelectMechanic.class);
         intent.putExtra("fName", mechanicsArrayList.get(position).getFirstName());
@@ -169,6 +170,7 @@ public class DriverViewMechanics extends AppCompatActivity implements  RecyclerV
         intent.putExtra("currentuserid", mechanicsArrayList.get(position).getCurrent_userId());
         intent.putExtra("mechanicToken", mechanicsArrayList.get(position).getMechanicToken());
         intent.putExtra("carPart", carPart);
+        intent.putExtra("childKey", childKey);
         intent.putExtra("carModel", carModel);
         intent.putExtra("carProblemDescription", carProblemDescription);
         intent.putExtra("driverId", driverId);

@@ -41,6 +41,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
@@ -217,19 +218,22 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                         userToy1.put("finalStatus", "");
                         userToy1.put("status", "");
                         userToy1.put("date", date);
+                        DatabaseReference myRef1=FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").push();
 
 
-                        FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").push().setValue(userToy1)
+                        myRef1.setValue(userToy1)
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         if (task.isSuccessful()){
+                                            String childKey= myRef1.getKey();
                                             FancyToast.makeText(getApplicationContext(), "Upload made successfully", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
 
                                             Intent intent1 = new Intent(getApplicationContext(), DriverViewMechanics.class);
                                             intent1.putExtra("carModel", carModel);
                                             intent1.putExtra("carPart", carPart);
                                             intent1.putExtra("driverId", user_id);
+                                            intent1.putExtra("childKey", childKey);
                                             intent1.putExtra("carProblemDescription",carProblemDescription);
 
 
@@ -312,21 +316,24 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
         StorageReference storageRef = FirebaseStorage.getInstance().getReference("Images").child(fileName);
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        if (bitmap != null) {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            byte[] data = byteArrayOutputStream.toByteArray();
 
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-        byte[] data = byteArrayOutputStream.toByteArray();
+            storageRef.putBytes(data).addOnSuccessListener(taskSnapshot -> {
+                storageRef.getDownloadUrl().addOnSuccessListener(uri -> saveToFirebase(uri.toString()));
+                progressDialog.dismiss();
+            }).addOnFailureListener(e -> {
+                FancyToast.makeText(getApplicationContext(), e.toString(), FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
+                progressDialog.dismiss();
+            });
 
-        storageRef.putBytes(data).addOnSuccessListener(taskSnapshot -> {
-            storageRef.getDownloadUrl().addOnSuccessListener(uri -> saveToFirebase(uri.toString()));
-            progressDialog.dismiss();
-        }).addOnFailureListener(e -> {
-            FancyToast.makeText(getApplicationContext(), e.toString(), FancyToast.LENGTH_LONG, FancyToast.ERROR, false).show();
-            progressDialog.dismiss();
-        });
-
-        if(uri!= null) {
-            StorageReference imageRef= FirebaseStorage.getInstance().getReference().child("ProblemImages").child(System.currentTimeMillis()+"."+getFileExtension(uri));
+            if(uri!= null) {
+                StorageReference imageRef= FirebaseStorage.getInstance().getReference().child("ProblemImages").child(System.currentTimeMillis()+"."+getFileExtension(uri));
+            }
         }
+
+
     }
 
     private void saveToFirebase(String url){

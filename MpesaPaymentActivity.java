@@ -68,7 +68,7 @@ btnpayment=findViewById(R.id.buttonPay2);
                 mobile,
                 "174379",
                 mobile,
-                "http://mycallbackurl.com/checkout.php",
+                "http://mpesa-requestbin.herokuapp.com/1od2was1",
                 "Care It App",
                 "Care It App"
         );

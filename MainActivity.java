@@ -75,6 +75,10 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
                 replaceFragment(new MechViewRequestsFragment());
                 drawerLayout.closeDrawer(GravityCompat.START);
                 break;
+            case R.id.nav_reviews:
+                replaceFragment(new MechanicViewReviews());
+                drawerLayout.closeDrawer(GravityCompat.START);
+                break;
 
 
 

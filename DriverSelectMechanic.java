@@ -58,6 +58,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -123,12 +124,13 @@ public class DriverSelectMechanic extends AppCompatActivity  {
     private ArrayList permissionsToRequest;
     private ArrayList permissionsRejected = new ArrayList();
     private ArrayList permissions = new ArrayList();
+    ImageButton imageButtonmpesa;
 
     private final static int ALL_PERMISSIONS_RESULT = 101;
     LocationTrack locationTrack;
 
 
-    Button buttonCall, buttonBack,buttonMessage,buttonMessagePop,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
+    Button buttonCall, buttonReviews,buttonBack,buttonMessage,buttonMessagePop,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
     DocumentSnapshot documentSnapshot;
     TextView textView;
 
@@ -164,7 +166,7 @@ public class DriverSelectMechanic extends AppCompatActivity  {
         buttonBack = findViewById(R.id.btnselectmech_back);
         buttonrequest=findViewById(R.id.btnsendRequest);
 
-
+buttonReviews=findViewById(R.id.btn_viewratings);
         buttoncancel=findViewById(R.id.btncancelRequestmech);
         buttonMessage=findViewById(R.id.btnchatMech);
         editTextf = findViewById(R.id.verymechanic_firstnameD);
@@ -177,6 +179,7 @@ public class DriverSelectMechanic extends AppCompatActivity  {
         // editTextv=findViewById(R.id.verymechanic_verystatus);
         // imageViewl=findViewById(R.id.mech_licencePicv);
         imageViewp = findViewById(R.id.mech_profilePicD);
+        imageButtonmpesa=findViewById(R.id.btn_driverPaymech);
         //setting images to imageview
         Picasso.get().load(profilePhotoUrl).into(imageViewp);
 
@@ -194,6 +197,31 @@ public class DriverSelectMechanic extends AppCompatActivity  {
 
         layout.setVisibility(View.GONE);
         RequestPopUpWindow();
+        //vie reviews
+        buttonReviews.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), RatingMainActivity.class);
+                intent.putExtra("mechanicId", current_userId);
+
+                startActivity(intent);
+            }
+        });
+        imageButtonmpesa.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String mechanicPhoneNumber= getIntent().getStringExtra("phonenumber");
+
+                Intent intent = new Intent(getApplicationContext(), MpesaSimulationActivity.class);
+                intent.putExtra("mechanicId", current_userId);
+                intent.putExtra("phonenumber", mechanicPhoneNumber);
+
+                startActivity(intent);
+            }
+        });
+        //payments
+
+
         //back intent
         buttonBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -433,6 +461,21 @@ buttonrequest.setVisibility(View.VISIBLE);
 
 
     }
+    public void RequestingMechanicDb(){
+        String childKey=getIntent().getStringExtra("childKey");
+        DatabaseReference db;
+         current_userId = getIntent().getStringExtra("currentuserid");
+
+        db = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
+        db.child(childKey).child("mechanicId").setValue(current_userId).
+                addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+
+                    }
+                });
+
+    }
 
     public void RequestPopUpWindow(){
 
@@ -479,6 +522,8 @@ buttonrequest.setVisibility(View.VISIBLE);
         // Call requires API level 21
         if(Build.VERSION.SDK_INT>=21){
             mPopupWindow.setElevation(5.0f);
+            //mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
+
         }
 
         // Get a reference for the custom view close button
@@ -973,6 +1018,7 @@ buttonrequest.setVisibility(View.VISIBLE);
 
 
     }
+
 
 
 

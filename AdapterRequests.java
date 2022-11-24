@@ -23,7 +23,11 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -35,6 +39,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
     private final RecyclerViewInterface recyclerViewInterface;
     DocumentSnapshot documentSnapshot;
     ArrayList<request_details> requestsArrayList;
+    String childKey;
 
     public AdapterRequests(Context context, ArrayList<request_details> requestsArrayList, RecyclerViewInterface recyclerViewInterface) {
         this.context = context;
@@ -61,66 +66,42 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         holder.textViewcarProblemDesc.setText(req.getCarProblemDescription());
         holder.textViewcarModel.setText(req.getCarModel());
         holder.textViewrequestDate.setText(req.getDate());
+
         holder.buttonAccept.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FirebaseAuth mAuth= FirebaseAuth.getInstance();
-                FirebaseUser userID  = mAuth.getCurrentUser();
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                String current_userIdm = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                final DocumentSnapshot[] documentSnapshot = new DocumentSnapshot[1];
-                String current_userIdD=req.getDriversId();
+                //accepting request
+                String current_userId=req.getDriversId();
+                String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
 
 
-                db.collection("driverRequest").document(current_userIdD).get()
-                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                DatabaseReference db;
+                db = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
+                db.orderByChild("mechanicId").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for(DataSnapshot dataSnapshot1:dataSnapshot.getChildren()){
+                            childKey = dataSnapshot1.getKey();
+                        }
+
+                        assert childKey != null;
+                        db.child(childKey).child("status").setValue("accepted");
+                        db.child(childKey).child("mechanicId").setValue(userId).
+                                addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    documentSnapshot[0] = task.getResult();
-                                    if (documentSnapshot[0].exists()) {
-                                        String status= documentSnapshot[0].getString("status");
-                                        String mechId= documentSnapshot[0].getString("mechanicId");
-
-
-                                        if (Objects.equals(mechId, current_userIdm)){
-                                            String current_userIdD=req.getDriversId();
-                                            FirebaseFirestore db3 = FirebaseFirestore.getInstance();
-                                            db3.collection("driverRequest").document(current_userIdD).
-                                                    update("mechanicId", "","status","accepted")
-                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                        @Override
-                                                        public void onSuccess(Void unused) {
-                                                            Log.d(TAG, "onSuccess: spinner stored");
-
-                                                            Toast.makeText(context.getApplicationContext(), "request accepted",Toast.LENGTH_SHORT).show();
-                                                            Intent intent= new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
-                                                            intent.putExtra("driversId", current_userIdD);
-                                                            context.startActivity(intent);
-                                                        }
-                                                    });
-
-//kahuko.alex19@students.dkut.ac.ke
-
-                                        }
-                                        else {
-                                            Toast.makeText(context.getApplicationContext(), "task unavailable",Toast.LENGTH_SHORT).show();
-
-
-                                        }
-
-
-
-                                    }
-                                }
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
+                            public void onSuccess(Void unused) {
+                                Toast.makeText(context, "Request Accepted ",Toast.LENGTH_SHORT).show();
 
                             }
                         });
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
 
             }
         });
@@ -129,18 +110,51 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
             public void onClick(View v) {
                 //cancelling request
                 String current_userId=req.getDriversId();
-                FirebaseFirestore db3 = FirebaseFirestore.getInstance();
-                db3.collection("driverRequest").document(current_userId).
-                        update("mechanicId", "","status","rejected")
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                Log.d(TAG, "onSuccess: spinner stored");
+                String date=req.getDate();
+                String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-                                Toast.makeText(context.getApplicationContext(), "request cancelled xx",Toast.LENGTH_SHORT).show();
 
-                            }
-                        });
+
+                DatabaseReference db;
+
+                db = (DatabaseReference) FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").orderByChild("mechanicId").equalTo(userId);
+                db.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for(DataSnapshot dataSnapshot1:dataSnapshot.getChildren()){
+                            childKey = dataSnapshot1.getKey();
+                        }
+                        db.orderByChild("date").equalTo(date)
+                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+
+
+
+                        db.child(childKey).child("mechanicId").setValue("").
+                                addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        Toast.makeText(context, " turned down the request",Toast.LENGTH_SHORT).show();
+
+                                    }
+                                });
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
 
             }
         });

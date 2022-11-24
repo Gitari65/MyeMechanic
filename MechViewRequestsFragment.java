@@ -107,7 +107,7 @@ public class MechViewRequestsFragment extends Fragment implements RecyclerViewIn
         progressDialog.show();
 MyEventChangeListener();
 
-        recyclerView.setAdapter(myRAdapter);
+
         return view;
     }
 
@@ -141,6 +141,7 @@ MyEventChangeListener();
             }
 
 myRAdapter.notifyDataSetChanged();
+            recyclerView.setAdapter(myRAdapter);
             if(progressDialog.isShowing()){
                 progressDialog.dismiss();
             }

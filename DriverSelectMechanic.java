@@ -58,8 +58,11 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -133,6 +136,7 @@ public class DriverSelectMechanic extends AppCompatActivity  {
     Button buttonCall, buttonReviews,buttonBack,buttonMessage,buttonMessagePop,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
     DocumentSnapshot documentSnapshot;
     TextView textView;
+    String childKey;
 
 
 
@@ -247,33 +251,9 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                     mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
 
                     //FIREBASE REALTIME
-                    DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy @ HH:mm", Locale.US);
-                    String date = dateFormat.format(new Date());
-                    String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    FirebaseFirestore dbEn = FirebaseFirestore.getInstance();
-                    Map<String, Object> userToy = new HashMap<>();
-                    userToy.put("date", date);
-                    userToy.put("carPart", carPart);
-                    userToy.put("carModel", carModel);
-                    userToy.put("driversId",userId);
-                    userToy.put("carProblemDescription", carProblemDescription);
-                    FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Mechanics").child(current_userId).push().setValue(userToy).
-                            addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if(task.isSuccessful()){
-                                        FancyToast.makeText(getApplicationContext(), "request made wait", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
 
 
-                                    }
-
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-
-                                }
-                            });
+                    RequestingMechanicDb();
 
                 }
                 else{
@@ -433,6 +413,7 @@ buttonrequest.setVisibility(View.VISIBLE);
                     }
                 });
     }
+
 
     @Override
     protected void onStart() {

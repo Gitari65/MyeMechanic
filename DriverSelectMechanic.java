@@ -83,7 +83,7 @@ import java.util.Objects;
 public class DriverSelectMechanic extends AppCompatActivity  {
     EditText editTextf, editTexts, editTexte, editTextl,editTextp;
     ImageView imageViewp, imageViewl;
-    LinearLayout layout,layoutPop;
+    LinearLayout layout,layoutPop,layoutDetails;
 
     protected LocationManager locationManager;
     protected LocationListener locationListener;
@@ -133,9 +133,9 @@ public class DriverSelectMechanic extends AppCompatActivity  {
     LocationTrack locationTrack;
 
 
-    Button buttonCall, buttonReviews,buttonBack,buttonMessage,buttonMessagePop,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
+    Button buttonCall, buttonReviews,buttonBack,buttonToggle,buttonMessage,buttonMessagePop,buttonFindOtherMechs,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
     DocumentSnapshot documentSnapshot;
-    TextView textView;
+    TextView textView,txtInfoUpdate;
     String childKey;
 
 
@@ -165,6 +165,7 @@ public class DriverSelectMechanic extends AppCompatActivity  {
         Log.d(TAG, "onCreate: "+garageLocation);
 
  layout= (LinearLayout) findViewById(R.id.layoutDetails);
+        layoutDetails= (LinearLayout) findViewById(R.id.layoutMehanicDetails);
 
         editTexte = findViewById(R.id.verymechanic_emailD);
         buttonBack = findViewById(R.id.btnselectmech_back);
@@ -173,6 +174,7 @@ public class DriverSelectMechanic extends AppCompatActivity  {
 buttonReviews=findViewById(R.id.btn_viewratings);
         buttoncancel=findViewById(R.id.btncancelRequestmech);
         buttonMessage=findViewById(R.id.btnchatMech);
+        buttonToggle=findViewById(R.id.btnToggleMechDeatils);
         editTextf = findViewById(R.id.verymechanic_firstnameD);
         editTexts = findViewById(R.id.verymechanic_secondnameD);
         buttonCall= findViewById(R.id.btncallMech);
@@ -201,7 +203,20 @@ buttonReviews=findViewById(R.id.btn_viewratings);
 
         layout.setVisibility(View.GONE);
         RequestPopUpWindow();
-        //vie reviews
+
+        // toggle details
+        buttonToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(layoutDetails.getVisibility() == View.VISIBLE){
+                    layoutDetails.setVisibility(View.GONE);
+                } else {
+                    layoutDetails.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        //view reviews
         buttonReviews.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -272,21 +287,7 @@ RequestProcessingDetails();
             public void onClick(View v) {
                 //cancelling request
                 String current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-                FirebaseFirestore db3 = FirebaseFirestore.getInstance();
-                db3.collection("driverRequest").document(current_userId).update("mechanicId", "")
-                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                Log.d(TAG, "onSuccess: spinner stored");
 
-                                Toast.makeText(getApplicationContext(), "request cancelled xx",Toast.LENGTH_SHORT).show();
-buttoncancel.setVisibility(View.GONE);
-layout.setVisibility(View.GONE);
-buttonrequest.setVisibility(View.VISIBLE);
-                                buttonrequest.setText("request");
-
-                            }
-                        });
 
             }
         });
@@ -512,9 +513,21 @@ buttonrequest.setVisibility(View.VISIBLE);
         textView=customView.findViewById(R.id.textViewRequestStatus);
         layoutPop=customView.findViewById(R.id.layoutDetailsPop);
         buttonLocationPop=customView.findViewById(R.id.btnfindMechLocationPop);
+
+        txtInfoUpdate=customView.findViewById(R.id.textViewUpdatePop);
         buttonMessagePop=customView.findViewById(R.id.btnchatMechPop);
+        buttonFindOtherMechs=customView.findViewById(R.id.buttonFindOtherMechPop);
         btnCancelPop=customView.findViewById(R.id.buttonCancelrequestPop);
         progressBar=customView.findViewById(R.id.requestProgressBarPop);
+        buttonFindOtherMechs.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(getApplicationContext(),DriverViewMechanics.class);
+                String childKey=getIntent().getStringExtra("childKey");
+                intent.putExtra("childKey", childKey);
+                startActivity(intent);
+            }
+        });
 
 
         // Set a click listener for the popup window close button
@@ -551,68 +564,71 @@ buttonrequest.setVisibility(View.VISIBLE);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String current_userIdm = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String childKey=getIntent().getStringExtra("childKey");
+
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference requestsRef = rootRef.child("DriverRequest").child("Request").child(childKey);
+        ValueEventListener valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    String status = ds.child("status").getValue(String.class);
+                   // String ingredients_english = ds.child("ingredients_english").getValue(String.class);
+                  //  String long_name = ds.child("long_name").getValue(String.class);
+                    if (Objects.equals(status, "accepted")){
+                        Log.d(TAG, "onComplete: driverRequest Pop**");
+                        buttonrequest.setVisibility(View.GONE);
+                        layout.setVisibility(View.VISIBLE);
+
+                        textView.setText("Accepted");
+                        textView.setTextColor(Color.GREEN);
+                        txtInfoUpdate.setText("Mechanic is to contact you");
+
+                        progressBar.setVisibility(View.GONE);
+                        layoutPop.setVisibility(View.VISIBLE);
+                        btnCancelPop.setVisibility(View.GONE);
 
 
 
-        db.collection("driverRequest").document(current_userIdm).get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            documentSnapshot = task.getResult();
-                            if (documentSnapshot.exists()) {
-                               String status= documentSnapshot.getString("status");
-                                String mechId= documentSnapshot.getString("mechanicId");
+                    }
+                    if (Objects.equals(status, "rejected")){
+                        textView.setText("Denied XX");
+                        txtInfoUpdate.setText("You can go back and try to get other mechanics");
+                        Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic might be unavailable",Toast.LENGTH_SHORT).show();
+                        btnCancelPop.setVisibility(View.VISIBLE);
+                        buttonFindOtherMechs.setVisibility(View.VISIBLE);
 
-                            if (Objects.equals(status, "accepted")){
-                                Log.d(TAG, "onComplete: driverRequest Pop**");
-                                buttonrequest.setVisibility(View.GONE);
-                                layout.setVisibility(View.VISIBLE);
-
-                                textView.setText("Accepted");
-                                textView.setTextColor(Color.GREEN);
-
-                                progressBar.setVisibility(View.GONE);
-                                layoutPop.setVisibility(View.VISIBLE);
-                                btnCancelPop.setVisibility(View.GONE);
-
-
-
-                            }
-                                if (Objects.equals(status, "rejected")){
-                                    textView.setText("Denied XX");
-                                    Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic unavailable",Toast.LENGTH_SHORT).show();
-                                    Toast.makeText(getApplicationContext(), "go back and try other available mechs",Toast.LENGTH_LONG).show();
-                                btnCancelPop.setVisibility(View.VISIBLE);
 
 //kahuko.alex19@students.dkut.ac.ke
 
-                                }
-                                if (Objects.equals(status, "sent")){
-                                    Log.d(TAG, "onComplete: driverRequest Pop**");
-                                    buttonrequest.setVisibility(View.GONE);
-                                    layout.setVisibility(View.VISIBLE);
-
-                                    buttonrequest.setText("waiting....");
-                                    buttoncancel.setVisibility(View.VISIBLE);
-                                    progressBar.setVisibility(View.VISIBLE);
-                                    layoutPop.setVisibility(View.VISIBLE);
-                                    btnCancelPop.setVisibility(View.GONE);
-
-
-
-                                }
-
-
-                            }
-                        }
                     }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
+                    if (Objects.equals(status, "sent")){
+                        Log.d(TAG, "onComplete: driverRequest Pop**");
+                        buttonrequest.setVisibility(View.GONE);
+                        layout.setVisibility(View.VISIBLE);
+
+                        buttonrequest.setText("waiting....");
+                        buttoncancel.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.VISIBLE);
+                        layoutPop.setVisibility(View.VISIBLE);
+                        btnCancelPop.setVisibility(View.GONE);
+
+
 
                     }
-                });
+                    
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+            }
+        };
+        requestsRef.addListenerForSingleValueEvent(valueEventListener);
+
+
+
 
     }
 

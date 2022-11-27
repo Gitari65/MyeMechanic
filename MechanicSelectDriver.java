@@ -12,10 +12,12 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -33,7 +35,8 @@ public class MechanicSelectDriver extends AppCompatActivity {
     TextView textViewphoneno,textViewfName,textViewEmail,textViewsName;
     ImageView imageView;
     Double driverCurrentLatitude,driverCurrentLongitude;
-    Button buttonCall,buttonLocate,buttonChat,buttonBack;
+    Button buttonCall,buttonLocate,buttonChat,buttonBack,buttonToggle;
+    LinearLayout layout;
     //kenedychomba87@gmail.com
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +46,28 @@ public class MechanicSelectDriver extends AppCompatActivity {
         buttonChat=findViewById(R.id.btnchatdriver);
         buttonLocate=findViewById(R.id.btnfindDriverLocation);
         buttonBack=findViewById(R.id.btnselectdriver_back);
+        buttonToggle=findViewById(R.id.btnToggleDriverDetails);
 
         textViewEmail=findViewById(R.id.verydriver_emailD);
         textViewphoneno=findViewById(R.id.verydriver_phonenumberD);
         textViewfName=findViewById(R.id.verydriver_firstnameD);
         textViewsName=findViewById(R.id.verydriver_secondnameD);
         imageView=findViewById(R.id.driver_profilePicture);
+        layout=findViewById(R.id.layoutDriverDetails);
         getDriverDetails();
+
+
+        //toggle details
+        buttonToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(layout.getVisibility() == View.VISIBLE){
+                    layout.setVisibility(View.GONE);
+                } else {
+                    layout.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
 
         //message

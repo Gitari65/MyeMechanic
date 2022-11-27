@@ -116,7 +116,13 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                                 SaveWorkHistory();
 
                             }
-                        });
+                        }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(context, "Request might have been cancelled ",Toast.LENGTH_SHORT).show();
+
+                                    }
+                                });
 
                     }
 
@@ -159,12 +165,18 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                                 addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void unused) {
-                                        Toast.makeText(context, " turned down the request",Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(context, " You have turned down the request",Toast.LENGTH_SHORT).show();
 
                                         SaveWorkHistory();
 
                                     }
-                                });
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(context, "Request might have been cancelled ",Toast.LENGTH_SHORT).show();
+
+                                    }
+                                });;
 
                     }
 

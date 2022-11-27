@@ -66,7 +66,11 @@ public class DriversHomeActivity extends AppCompatActivity {
                       Intent intent =new Intent(getApplicationContext(),DriverProblemActivity.class);
                       startActivity(intent);
                         break;
+                    case R.id.nav_drivers_requests:
+                        drawerLayout.closeDrawer(GravityCompat.START);
+                        replaceFragment(new DriverRequestsFragment());
 
+                        break;
                     case R.id.nav_drivers_account:
                         drawerLayout.closeDrawer(GravityCompat.START);
                    replaceFragment(new DriverProfileFragment());

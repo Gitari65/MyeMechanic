@@ -216,7 +216,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
 
 
                         userToy1.put("finalStatus", "");
-                        userToy1.put("status", "");
+                        userToy1.put("status", "not sent");
                         userToy1.put("date", date);
                         DatabaseReference myRef1=FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").push();
 

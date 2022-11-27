@@ -66,4 +66,14 @@ public class request_details {
 
     private  String date;
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    private  String status;
+
 }

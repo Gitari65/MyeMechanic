@@ -191,6 +191,18 @@ myRAdapter.notifyDataSetChanged();
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        myRAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        myRAdapter.notifyDataSetChanged();
+    }
+
+    @Override
     public void onItemClick(int position) {
        // Intent intent = new Intent(getContext(), MechanicSelectDriver.class);
       //  intent.putExtra("driversId",requestsArrayList.get(position).getDriversId() );

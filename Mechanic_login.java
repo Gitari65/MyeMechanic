@@ -44,6 +44,7 @@ FirebaseFirestore fStore;
     DocumentSnapshot documentSnapshot,documentSnapshot1,documentSnapshot2,documentSnapshot5;
     EditText mechanic_login_email,mechanic_login_pass;
     ProgressBar progressBar;
+   ProgressDialog pd;
     Button mechanic_login_button,button;
     TextView textView;
     @Override
@@ -54,7 +55,7 @@ FirebaseFirestore fStore;
        // assert actionBar != null;
        // actionBar.hide();
         //progerss
-        final ProgressDialog pd = new ProgressDialog(Mechanic_login.this);
+        pd = new ProgressDialog(Mechanic_login.this);
         pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         pd.setMessage("Signing in....");
         pd.setIndeterminate(true);
@@ -117,8 +118,8 @@ String Email=mechanic_login_email.getText().toString().trim();
                 }
                 else {
                     getMechanicVerificationStatus();
-                    adminUserTypeVerification();
-                   pd.dismiss();
+
+
 
 
 
@@ -190,6 +191,7 @@ String Email=mechanic_login_email.getText().toString().trim();
 DocumentSnapshot documentSnapshot5;
 
                 if (task5.isSuccessful()) {
+                    pd.dismiss();
                     documentSnapshot5 = task5.getResult();
                     if (documentSnapshot5.exists()) {
 
@@ -198,7 +200,8 @@ DocumentSnapshot documentSnapshot5;
                         if(Objects.equals(status_text, "verified")){
                             Intent intent= new Intent(getApplicationContext(), MainActivity.class);
                             startActivity(intent);
-                        }else{
+                        }
+                        if(Objects.equals(status_text, "pending")){
                             Toast.makeText(getApplicationContext(),"verification may take 72hrs",Toast.LENGTH_LONG).show();
 
                             Intent intent= new Intent(getApplicationContext(), Mechanic_regstatus.class);
@@ -207,7 +210,8 @@ DocumentSnapshot documentSnapshot5;
                     }
                     else {
                         Log.d(TAG, "onComplete: details not found");
-                        Toast.makeText(getApplicationContext(),"failed!!check email or password",Toast.LENGTH_LONG).show();
+
+                        adminUserTypeVerification();
 
                     }
                 }}
@@ -215,6 +219,7 @@ DocumentSnapshot documentSnapshot5;
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
+                pd.dismiss();
                 Log.d(TAG, "onFailure: null snapshot");            }
         });
     }

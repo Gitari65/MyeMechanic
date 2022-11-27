@@ -187,7 +187,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         imageViewp = findViewById(R.id.mech_profilePicD);
         imageButtonmpesa=findViewById(R.id.btn_driverPaymech);
         //setting images to imageview
-        Picasso.get().load(profilePhotoUrl).into(imageViewp);
+        //Picasso.get().load(profilePhotoUrl).into(imageViewp);
 
         //getting recyclerview inf
 
@@ -287,6 +287,8 @@ RequestProcessingDetails();
             public void onClick(View v) {
                 //cancelling request
                 String current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+                CancellingRequest();
+
 
 
             }
@@ -392,6 +394,8 @@ RequestProcessingDetails();
                             documentSnapshot = task.getResult();
                             if (documentSnapshot.exists()) {
                              garagename= documentSnapshot.getString("garageName");
+                             String profileImageUrl=documentSnapshot.getString("profilePhotoUrl");
+                                Picasso.get().load(profileImageUrl).into(imageViewp);
                                 buttonLocation.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
@@ -443,12 +447,40 @@ RequestProcessingDetails();
 
 
     }
+    public void CancellingRequest(){
+        String childKey=getIntent().getStringExtra("childKey");
+
+
+        DatabaseReference db;
+        current_userId = getIntent().getStringExtra("currentuserid");
+
+
+
+        db = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
+        db.child(childKey).child("status").setValue("cancelled");
+        db.child(childKey).child("mechanicId").setValue("").
+                addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Toast.makeText(context, "Request cancelled ",Toast.LENGTH_SHORT).show();
+                        buttoncancel.setVisibility(View.GONE);
+                        buttonrequest.setVisibility(View.VISIBLE);
+
+                    }
+                });
+
+    }
     public void RequestingMechanicDb(){
         String childKey=getIntent().getStringExtra("childKey");
+
+
         DatabaseReference db;
          current_userId = getIntent().getStringExtra("currentuserid");
 
+
+
         db = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
+        db.child(childKey).child("status").setValue("sent");
         db.child(childKey).child("mechanicId").setValue(current_userId).
                 addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -565,67 +597,68 @@ RequestProcessingDetails();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String current_userIdm = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String childKey=getIntent().getStringExtra("childKey");
+        DatabaseReference db2 = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
 
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference requestsRef = rootRef.child("DriverRequest").child("Request").child(childKey);
-        ValueEventListener valueEventListener = new ValueEventListener() {
+        db2.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot ds : dataSnapshot.getChildren()) {
-                    String status = ds.child("status").getValue(String.class);
-                   // String ingredients_english = ds.child("ingredients_english").getValue(String.class);
-                  //  String long_name = ds.child("long_name").getValue(String.class);
-                    if (Objects.equals(status, "accepted")){
-                        Log.d(TAG, "onComplete: driverRequest Pop**");
-                        buttonrequest.setVisibility(View.GONE);
-                        layout.setVisibility(View.VISIBLE);
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot userSnapshot: dataSnapshot.getChildren()) {
+                    // check for desired id here
+                    if(userSnapshot.getKey().equals(childKey)) {
+                        String status= userSnapshot.child("status").getValue().toString();
+                        if (Objects.equals(status, "accepted")){
+                            Log.d(TAG, "onComplete: driverRequest Pop**");
+                            buttonrequest.setVisibility(View.GONE);
+                            layout.setVisibility(View.VISIBLE);
 
-                        textView.setText("Accepted");
-                        textView.setTextColor(Color.GREEN);
-                        txtInfoUpdate.setText("Mechanic is to contact you");
+                            textView.setText("Accepted");
+                            textView.setTextColor(Color.GREEN);
+                            txtInfoUpdate.setText("Mechanic is to contact you");
 
-                        progressBar.setVisibility(View.GONE);
-                        layoutPop.setVisibility(View.VISIBLE);
-                        btnCancelPop.setVisibility(View.GONE);
+                            progressBar.setVisibility(View.GONE);
+                            layoutPop.setVisibility(View.VISIBLE);
+                            btnCancelPop.setVisibility(View.GONE);
 
 
 
-                    }
-                    if (Objects.equals(status, "rejected")){
-                        textView.setText("Denied XX");
-                        txtInfoUpdate.setText("You can go back and try to get other mechanics");
-                        Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic might be unavailable",Toast.LENGTH_SHORT).show();
-                        btnCancelPop.setVisibility(View.VISIBLE);
-                        buttonFindOtherMechs.setVisibility(View.VISIBLE);
+                        }
+                        if (Objects.equals(status, "rejected")){
+                            textView.setText("Denied XX");
+                            txtInfoUpdate.setText("You can go back and try to get other mechanics");
+                            Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic might be unavailable",Toast.LENGTH_SHORT).show();
+                            btnCancelPop.setVisibility(View.VISIBLE);
+                            buttonFindOtherMechs.setVisibility(View.VISIBLE);
 
 
 //kahuko.alex19@students.dkut.ac.ke
 
+                        }
+                        if (Objects.equals(status, "sent")){
+                            Log.d(TAG, "onComplete: driverRequest Pop**");
+                            buttonrequest.setVisibility(View.GONE);
+                            layout.setVisibility(View.GONE);
+
+                            buttonrequest.setText("waiting....");
+                            buttoncancel.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.VISIBLE);
+                            layoutPop.setVisibility(View.GONE);
+                            btnCancelPop.setVisibility(View.GONE);
+
+
+
+                        }
                     }
-                    if (Objects.equals(status, "sent")){
-                        Log.d(TAG, "onComplete: driverRequest Pop**");
-                        buttonrequest.setVisibility(View.GONE);
-                        layout.setVisibility(View.VISIBLE);
-
-                        buttonrequest.setText("waiting....");
-                        buttoncancel.setVisibility(View.VISIBLE);
-                        progressBar.setVisibility(View.VISIBLE);
-                        layoutPop.setVisibility(View.VISIBLE);
-                        btnCancelPop.setVisibility(View.GONE);
-
-
-
-                    }
-                    
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+                throw databaseError.toException();
             }
-        };
-        requestsRef.addListenerForSingleValueEvent(valueEventListener);
+        });
+
+
+
 
 
 

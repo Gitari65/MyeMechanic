@@ -28,6 +28,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.squareup.picasso.Picasso;
 
 
 public class MechanicSelectDriver extends AppCompatActivity {
@@ -118,6 +119,8 @@ public class MechanicSelectDriver extends AppCompatActivity {
                                 String driverEmail= documentSnapshot.getString("driverEmail");
                                 String driverPhoneNumber= documentSnapshot.getString("driverPhoneNumber");
 
+                                String profileImageUrl= documentSnapshot.getString("profilePhoto");
+                                Picasso.get().load(profileImageUrl).into(imageView);
                                driverCurrentLatitude= documentSnapshot.getDouble("driverCurrentLatitude");
                                 driverCurrentLongitude= documentSnapshot.getDouble("driverCurrentLongitude");
                                 buttonLocate.setOnClickListener(new View.OnClickListener() {
@@ -134,12 +137,6 @@ public class MechanicSelectDriver extends AppCompatActivity {
                                 textViewfName.setText(driverFirstName);
                                 textViewphoneno.setText(driverPhoneNumber);
                                 textViewsName.setText(driverSecondName);
-
-
-
-
-
-
 
                                 // Log.d(TAG, "onComplete: mecha garage name "+garagename);
                             }

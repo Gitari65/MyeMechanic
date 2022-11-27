@@ -26,6 +26,16 @@ public class request_details {
 
     private  String carModel;
 
+    public String getMechanicId() {
+        return mechanicId;
+    }
+
+    public void setMechanicId(String mechanicId) {
+        this.mechanicId = mechanicId;
+    }
+
+    private  String mechanicId;
+
     public String getCarPart() {
         return carPart;
     }

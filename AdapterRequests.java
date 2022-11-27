@@ -28,6 +28,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -69,7 +70,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         String driverFirstName;
         String driverSecondName;
         String driverEmail;
-        String driverPhoneNumber;
+        String driverPhoneNumber,workChildKey;
         String carModel,carPart,carProblemDescription,date,responseDate,status;
 
     @Override
@@ -81,11 +82,35 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         responseDate = dateFormat.format(new Date());
         carModel=req.getCarModel();
         carPart=req.getCarPart();
+        status=req.getStatus();
+        current_userId=req.getDriversId();
         date= req.getDate();
         holder.textViewcarPart.setText(req.getCarPart());
         holder.textViewcarProblemDesc.setText(req.getCarProblemDescription());
         holder.textViewcarModel.setText(req.getCarModel());
         holder.textViewrequestDate.setText(req.getDate());
+        if (Objects.equals(status, "accepted")){
+            holder.buttonAccept.setVisibility(View.GONE);
+            holder.buttonView.setVisibility(View.VISIBLE);
+        }
+        if (Objects.equals(status, "rejected")){
+            holder.buttonCancel.setVisibility(View.GONE);
+        }
+        if (Objects.equals(status, "not sent")){
+            holder.buttonCancel.setVisibility(View.GONE);
+            holder.buttonAccept.setVisibility(View.GONE);
+            holder.buttonView.setVisibility(View.GONE);
+        }
+
+        holder.buttonView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent =new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
+                intent.putExtra("driversId",current_userId);
+                context.startActivity(intent);
+            }
+        });
+
 
         holder.buttonAccept.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -94,43 +119,41 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                 String current_userId=req.getDriversId();
                 String date=req.getDate();
                 String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-                DatabaseReference db;
-                String status="accepted";
-                db = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
-                db.addListenerForSingleValueEvent(new ValueEventListener() {
+                String status=req.getStatus();
+                DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+                DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
+                Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
+                ValueEventListener valueEventListener = new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for(DataSnapshot dataSnapshot1:dataSnapshot.getChildren()){
-                            childKey = dataSnapshot1.getKey();
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("status", "accepted");
+                            map.put("mechanicId", userId);
+                            ds.getRef().updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    SaveWorkHistory();
+                                    Toast.makeText(context, " accepted request succefully ",Toast.LENGTH_SHORT).show();
+
+                                    Intent intent=new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
+                                    intent.putExtra("driversId", current_userId);
+                                    intent.putExtra("workChildKey", workChildKey);
+                                    context.startActivity(intent);
+
+                                }
+                            });
                         }
-
-                        assert childKey != null;
-                        db.child(childKey).child("status").setValue("accepted").
-                                addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
-                                Toast.makeText(context, "Request Accepted ",Toast.LENGTH_SHORT).show();
-                                Intent intent =new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
-                                intent.putExtra("driversId",current_userId);
-                                context.startActivity(intent);
-                                SaveWorkHistory();
-
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Toast.makeText(context, "Request might have been cancelled ",Toast.LENGTH_SHORT).show();
-
-                                    }
-                                });
-
                     }
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                        Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
                     }
-                });
+                };
+                userQuery.addListenerForSingleValueEvent(valueEventListener);
+
+
+
 
             }
         });
@@ -143,48 +166,41 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                 String description=req.getCarProblemDescription();
                 String model=req.getCarModel();
                 String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-                String status="accepted";
+                String status="cancelled";
 
                 //save to cancelled transanction
 
 
 
-
-                DatabaseReference db;
-                db = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
-                db.addListenerForSingleValueEvent(new ValueEventListener() {
+                DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+                DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
+                Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
+                ValueEventListener valueEventListener = new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        for(DataSnapshot dataSnapshot1:dataSnapshot.getChildren()){
-                            childKey = dataSnapshot1.getKey();
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("status", "rejected");
+                            map.put("mechanicId", "");
+                            ds.getRef().updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+                                    SaveWorkHistory();
+                                    Toast.makeText(context, " You have turned down the request ",Toast.LENGTH_SHORT).show();
+
+
+
+
+                                }
+                            });
                         }
-
-
-                        db.child(childKey).child("status").setValue("rejected");
-                        db.child(childKey).child("mechanicId").setValue("").
-                                addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void unused) {
-                                        Toast.makeText(context, " You have turned down the request",Toast.LENGTH_SHORT).show();
-
-                                        SaveWorkHistory();
-
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Toast.makeText(context, "Request might have been cancelled ",Toast.LENGTH_SHORT).show();
-
-                                    }
-                                });;
-
                     }
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                        Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
                     }
-                });
+                };
+                userQuery.addListenerForSingleValueEvent(valueEventListener);
 
             }
         });
@@ -210,6 +226,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         myRef1.setValue(userToy1).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
+                workChildKey=myRef1.getKey();
                 Toast.makeText(context, "Saved Request ",Toast.LENGTH_SHORT).show();
 
             }
@@ -254,7 +271,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
     public static class MyViewHolder extends RecyclerView.ViewHolder{
 
         TextView textViewcarPart,textViewcarModel,textViewcarProblemDesc,textViewrequestDate;
-        Button buttonAccept,buttonCancel;
+        Button buttonAccept,buttonCancel,buttonView;
 
         public MyViewHolder(@NonNull View itemView,RecyclerViewInterface recyclerViewInterface) {
             super(itemView);
@@ -276,6 +293,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
             textViewcarPart=itemView.findViewById(R.id.txtview_requestCarPart);
             textViewrequestDate=itemView.findViewById(R.id.txt_requestDate);
             buttonAccept=itemView.findViewById(R.id.btnacceptRequest);
+            buttonView=itemView.findViewById(R.id.btnmechViewAcceptedRequest);
             buttonCancel=itemView.findViewById(R.id.btncancelRequest);
         }
     }

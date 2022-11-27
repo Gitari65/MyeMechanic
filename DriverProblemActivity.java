@@ -60,6 +60,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import timber.log.Timber;
+
 public class DriverProblemActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     TextView textViewEn, textViewBr, textViewEl, textViewTy;
     Button button, button1, buttonChoose,buttonUpload;
@@ -207,6 +209,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                         carProblemDescription = editText.getText().toString();
                         String user_id = FirebaseAuth.getInstance().getCurrentUser().getUid();
                         FirebaseFirestore dbEn = FirebaseFirestore.getInstance();
+                        DatabaseReference myRef1=FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").push();
                         Map<String, Object> userToy1 = new HashMap<>();
                         userToy1.put("carModel", carModel);
                         userToy1.put("driversId", user_id);
@@ -218,7 +221,9 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                         userToy1.put("finalStatus", "");
                         userToy1.put("status", "not sent");
                         userToy1.put("date", date);
-                        DatabaseReference myRef1=FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").push();
+
+
+
 
 
                         myRef1.setValue(userToy1)
@@ -227,6 +232,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                                     public void onComplete(@NonNull Task<Void> task) {
                                         if (task.isSuccessful()){
                                             String childKey= myRef1.getKey();
+
                                             FancyToast.makeText(getApplicationContext(), "Upload made successfully", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
 
                                             Intent intent1 = new Intent(getApplicationContext(), DriverViewMechanics.class);

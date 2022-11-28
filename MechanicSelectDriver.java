@@ -7,37 +7,59 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
-public class MechanicSelectDriver extends AppCompatActivity {
+
+public class MechanicSelectDriver extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
     DocumentSnapshot documentSnapshot;
-    TextView textViewphoneno,textViewfName,textViewEmail,textViewsName;
+    TextView textViewphoneno,textViewfName,textViewEmail,textViewsName,textViewAddWork;
     ImageView imageView;
     Double driverCurrentLatitude,driverCurrentLongitude;
-    Button buttonCall,buttonLocate,buttonChat,buttonBack,buttonToggle;
-    LinearLayout layout;
+    Button buttonCall,buttonLocate,buttonChat,buttonBack,buttonToggle,buttonSaveWork;
+    EditText editTextProblem,editTextCost,editTexttimeTaken,editTextPrice;
+    LinearLayout layout,layoutWorkDetails;
+    String paymentMethod,cost,price,problem, time;
+    String []payment={"Mpesa","Cash","Bank"};
+
     //kenedychomba87@gmail.com
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +70,7 @@ public class MechanicSelectDriver extends AppCompatActivity {
         buttonLocate=findViewById(R.id.btnfindDriverLocation);
         buttonBack=findViewById(R.id.btnselectdriver_back);
         buttonToggle=findViewById(R.id.btnToggleDriverDetails);
+        buttonSaveWork=findViewById(R.id.btnSaveWorkDetails);
 
         textViewEmail=findViewById(R.id.verydriver_emailD);
         textViewphoneno=findViewById(R.id.verydriver_phonenumberD);
@@ -55,10 +78,64 @@ public class MechanicSelectDriver extends AppCompatActivity {
         textViewsName=findViewById(R.id.verydriver_secondnameD);
         imageView=findViewById(R.id.driver_profilePicture);
         layout=findViewById(R.id.layoutDriverDetails);
+        textViewAddWork=findViewById(R.id.txtRecordWork);
+        layoutWorkDetails=findViewById(R.id.layoutWorkDetails);
+        editTextPrice=findViewById(R.id.edtWorkPrice);
+        editTextCost=findViewById(R.id.edtProblemCost);
+        editTextProblem=findViewById(R.id.edtProblemFixed);
+        editTexttimeTaken=findViewById(R.id.edtProblemTimetaken);
         getDriverDetails();
+        //get string
+        problem=editTextProblem.getText().toString();
+        price=editTextPrice.getText().toString();
+        cost=editTextCost.getText().toString();
+        time=editTexttimeTaken.getText().toString();
+
+
+        //spinner
+        Spinner spin = (Spinner) findViewById(R.id.spinnerPaymentMethod);
+        spin.setOnItemSelectedListener((AdapterView.OnItemSelectedListener) this);
+        //Creating the ArrayAdapter instance having the country list
+        ArrayAdapter<String> aa = new ArrayAdapter<>(MechanicSelectDriver.this,android.R.layout.simple_spinner_item,payment);
+        aa.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //Setting the ArrayAdapter data on the Spinner
+        spin.setAdapter(aa);
+        //Performing action onItemSelected and onNothing selected
+        spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+              paymentMethod=spin.getSelectedItem().toString();
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        buttonSaveWork.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                storeWorkDetails();
+            }
+        });
 
 
         //toggle details
+        textViewAddWork.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(layout.getVisibility() == View.VISIBLE){
+                    layout.setVisibility(View.GONE);
+                }
+                if(layoutWorkDetails.getVisibility() == View.VISIBLE){
+                    layoutWorkDetails.setVisibility(View.GONE);
+                } else {
+                    layoutWorkDetails.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
         buttonToggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -98,6 +175,93 @@ public class MechanicSelectDriver extends AppCompatActivity {
 
     }
     //methods
+    public void storeWorkDetails(){
+        //get string
+        problem=editTextProblem.getText().toString();
+        price=editTextPrice.getText().toString();
+        cost=editTextCost.getText().toString();
+        time=editTexttimeTaken.getText().toString();
+        //utils
+        if (price.equals("")) {
+            editTextPrice.setError(" Enter the price paid");
+            editTextPrice.requestFocus();
+            return;
+        }
+        if (cost.equals("")) {
+            editTextCost.setError("Please Enter cost");
+            editTextCost.requestFocus();
+            return;
+        }
+        if (problem.equals("")) {
+            editTextProblem.setError(" describe problem that was fixed");
+            editTextProblem.requestFocus();
+            return;
+        }
+        if (time.equals("")) {
+            editTexttimeTaken.setError(" describe problem that was fixed");
+            editTexttimeTaken.requestFocus();
+            return;
+        }
+
+        //storing spinner
+        ProgressDialog pd;
+        pd = new ProgressDialog(MechanicSelectDriver.this);
+        pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        pd.setMessage("Saving....");
+        pd.setIndeterminate(true);
+        pd.setCancelable(false);
+        pd.show();
+        DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy @ HH:mm", Locale.US);
+        String recordDate = dateFormat.format(new Date());
+        String workChildKey = getIntent().getStringExtra("workChildKey");
+        String current_userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        String date = getIntent().getStringExtra("date");
+        DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("MechanicWork");
+        Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
+        ValueEventListener valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+
+                    Map<String, Object> user3 = new HashMap<>();
+                    user3.put("workExpense",cost);
+                    user3.put("workPrice",price);
+                    user3.put("paymentMethod",paymentMethod);
+                    user3.put("workProblem",problem);
+                    user3.put("recordDate",recordDate);
+                    user3.put("timeTaken",time);
+                    ds.getRef().updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+
+                            pd.hide();
+                            Toast.makeText(getApplicationContext(),"Work Saved Successfully",Toast.LENGTH_SHORT).show();
+
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            pd.hide();
+                            Toast.makeText(getApplicationContext(),"saving failed try again later",Toast.LENGTH_SHORT).show();
+
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+                pd.hide();
+                Toast.makeText(getApplicationContext(),"Work not saved check you connection",Toast.LENGTH_SHORT).show();
+
+            }
+        };
+        userQuery.addListenerForSingleValueEvent(valueEventListener);
+
+
+
+    }
     public void getDriverDetails(){
         FirebaseAuth mAuth= FirebaseAuth.getInstance();
         FirebaseUser userID  = mAuth.getCurrentUser();
@@ -212,4 +376,18 @@ public class MechanicSelectDriver extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @Override
+    public void onClick(View v) {
+
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
 }

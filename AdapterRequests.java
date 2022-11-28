@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -86,11 +87,13 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         current_userId=req.getDriversId();
         date= req.getDate();
         holder.textViewcarPart.setText(req.getCarPart());
+        holder.textViewrequeststatus.setText(req.getStatus());
         holder.textViewcarProblemDesc.setText(req.getCarProblemDescription());
         holder.textViewcarModel.setText(req.getCarModel());
         holder.textViewrequestDate.setText(req.getDate());
         if (Objects.equals(status, "accepted")){
             holder.buttonAccept.setVisibility(View.GONE);
+          //  holder.textViewrequeststatus.setTextColor();
             holder.buttonView.setVisibility(View.VISIBLE);
         }
         if (Objects.equals(status, "rejected")){
@@ -102,14 +105,6 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
             holder.buttonView.setVisibility(View.GONE);
         }
 
-        holder.buttonView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent =new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
-                intent.putExtra("driversId",current_userId);
-                context.startActivity(intent);
-            }
-        });
 
 
         holder.buttonAccept.setOnClickListener(new View.OnClickListener() {
@@ -134,6 +129,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                                 @Override
                                 public void onSuccess(Void unused) {
                                     SaveWorkHistory();
+
                                     Toast.makeText(context, " accepted request succefully ",Toast.LENGTH_SHORT).show();
 
                                     Intent intent=new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
@@ -157,6 +153,17 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
 
             }
         });
+        holder.buttonView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent =new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
+                intent.putExtra("driversId",current_userId);
+                intent.putExtra("date", date);
+
+                context.startActivity(intent);
+            }
+        });
+
         holder.buttonCancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -270,7 +277,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
     }
     public static class MyViewHolder extends RecyclerView.ViewHolder{
 
-        TextView textViewcarPart,textViewcarModel,textViewcarProblemDesc,textViewrequestDate;
+        TextView textViewcarPart,textViewcarModel,textViewcarProblemDesc,textViewrequeststatus,textViewrequestDate;
         Button buttonAccept,buttonCancel,buttonView;
 
         public MyViewHolder(@NonNull View itemView,RecyclerViewInterface recyclerViewInterface) {
@@ -292,6 +299,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
             textViewcarProblemDesc=itemView.findViewById(R.id.txtview_requestCarProblemDesc);
             textViewcarPart=itemView.findViewById(R.id.txtview_requestCarPart);
             textViewrequestDate=itemView.findViewById(R.id.txt_requestDate);
+            textViewrequeststatus=itemView.findViewById(R.id.txt_requestStatus);
             buttonAccept=itemView.findViewById(R.id.btnacceptRequest);
             buttonView=itemView.findViewById(R.id.btnmechViewAcceptedRequest);
             buttonCancel=itemView.findViewById(R.id.btncancelRequest);

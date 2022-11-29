@@ -104,7 +104,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
             holder.buttonAccept.setVisibility(View.GONE);
             holder.buttonView.setVisibility(View.GONE);
         }
-
+getDriverDetails();
 
 
         holder.buttonAccept.setOnClickListener(new View.OnClickListener() {
@@ -134,6 +134,8 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
 
                                     Intent intent=new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
                                     intent.putExtra("driversId", current_userId);
+                                    intent.putExtra("date", date);
+
                                     intent.putExtra("workChildKey", workChildKey);
                                     context.startActivity(intent);
 
@@ -159,7 +161,6 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                 Intent intent =new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
                 intent.putExtra("driversId",current_userId);
                 intent.putExtra("date", date);
-
                 context.startActivity(intent);
             }
         });
@@ -192,6 +193,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                             ds.getRef().updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void unused) {
+                                   String status="rejected";
                                     SaveWorkHistory();
                                     Toast.makeText(context, " You have turned down the request ",Toast.LENGTH_SHORT).show();
 
@@ -221,8 +223,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         userToy1.put("mechanicId", userId);
         userToy1.put("carPart", carPart);
         userToy1.put("carProblemDescription", carProblemDescription);
-
-
+        userToy1.put("driverFirstName", driverFirstName);
         userToy1.put("finalStatus", "");
         userToy1.put("responseDate", responseDate);
         userToy1.put("status", status);
@@ -252,6 +253,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                         if (task.isSuccessful()) {
                             documentSnapshot = task.getResult();
                             if (documentSnapshot.exists()) {
+
                                  driverFirstName= documentSnapshot.getString("driverFirstName");
                                  driverSecondName= documentSnapshot.getString("driverSecondName");
                                  driverEmail= documentSnapshot.getString("driverEmail");

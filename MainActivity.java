@@ -71,6 +71,10 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
                 replaceFragment(new ChatlistFragment());
                 drawerLayout.closeDrawer(GravityCompat.START);
                 break;
+            case R.id.nav_history:
+                replaceFragment(new ReportsFragment());
+                drawerLayout.closeDrawer(GravityCompat.START);
+                break;
             case R.id.nav_requests:
                 replaceFragment(new MechViewRequestsFragment());
                 drawerLayout.closeDrawer(GravityCompat.START);

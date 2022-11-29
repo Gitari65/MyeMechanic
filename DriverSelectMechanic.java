@@ -107,11 +107,10 @@ public class DriverSelectMechanic extends AppCompatActivity  {
     private Activity mActivity;
 
     private LinearLayout mRelativeLayout;
+
     private Button mButton;
 
     private PopupWindow mPopupWindow;
-
-
     FirebaseFirestore mAuth;
     NotificationManager mNotificationManager;
     private RecyclerView recyclerView;
@@ -186,6 +185,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         // imageViewl=findViewById(R.id.mech_licencePicv);
         imageViewp = findViewById(R.id.mech_profilePicD);
         imageButtonmpesa=findViewById(R.id.btn_driverPaymech);
+
         //setting images to imageview
         //Picasso.get().load(profilePhotoUrl).into(imageViewp);
 
@@ -238,6 +238,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 startActivity(intent);
             }
         });
+
         //payments
 
 
@@ -246,6 +247,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), DriverProblemActivity.class);
+
                 startActivity(intent);
 
             }

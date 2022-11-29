@@ -36,6 +36,56 @@ public class request_details {
 
     private  String mechanicId;
 
+    public String getResponseDate() {
+        return responseDate;
+    }
+
+    public void setResponseDate(String responseDate) {
+        this.responseDate = responseDate;
+    }
+
+    private  String responseDate;
+
+    public String getDriverFirstName() {
+        return driverFirstName;
+    }
+
+    public void setDriverFirstName(String driverFirstName) {
+        this.driverFirstName = driverFirstName;
+    }
+
+    private  String driverFirstName;
+
+    public String getProblem() {
+        return problem;
+    }
+
+    public void setProblem(String problem) {
+        this.problem = problem;
+    }
+
+    private  String problem;
+
+    public String getCost() {
+        return cost;
+    }
+
+    public void setCost(String cost) {
+        this.cost = cost;
+    }
+
+    private  String cost;
+
+    public String getAmount() {
+        return amount;
+    }
+
+    public void setAmount(String amount) {
+        this.amount = amount;
+    }
+
+    private  String amount;
+
     public String getCarPart() {
         return carPart;
     }

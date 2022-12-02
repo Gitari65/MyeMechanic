@@ -1,5 +1,6 @@
 package com.example.myemechanic;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Bitmap;
@@ -18,6 +19,13 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -32,7 +40,7 @@ import java.util.Locale;
 public class ReportsMainActivity extends AppCompatActivity {
     Bitmap bmp,scaledbmp;
     int pageWidth=1200;
-    String printDate;
+    String printDate,Amount,Problem,date,carModel,user;
     TableLayout tableLayout;
 
     @Override
@@ -45,6 +53,29 @@ public class ReportsMainActivity extends AppCompatActivity {
         scaledbmp=Bitmap.createScaledBitmap(bmp,1200,510,false);
 
     }
+    public  void  getReportDetails(){
+
+        //database
+        String  userId= FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference reference= FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("MechanicWork");
+        reference.orderByChild("mechanicId").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Problem= (String) snapshot.child("carPart").getValue();
+                Amount= (String) snapshot.child("workPrice").getValue();
+                carModel= (String) snapshot.child("carModel").getValue();
+                user= (String) snapshot.child("driverFirstName").getValue();
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+
     //pdf create
     public void  createPDF(){
         PdfDocument myPdfDocument=new PdfDocument();
@@ -94,16 +125,29 @@ public class ReportsMainActivity extends AppCompatActivity {
         canvas.drawText("Date: ",120,830,myPaint);
         canvas.drawText("CarProblem: ",200,830,myPaint);
         canvas.drawText("CarModel ",280,830,myPaint);
-        canvas.drawText("Mechanic ",360,830,myPaint);
+        canvas.drawText("User ",360,830,myPaint);
         canvas.drawText("Amount ",400,830,myPaint);
 
         canvas.drawLine(180,790,180,840,myPaint);
         canvas.drawLine(680,790,680,840,myPaint);
         canvas.drawLine(880,790,880,840,myPaint);
 
+        canvas.drawText(date ,120,880,myPaint);
+        canvas.drawText(Problem ,200,930,myPaint);
+        canvas.drawText(carModel ,280,980,myPaint);
+        canvas.drawText(user ,360,1030,myPaint);
+        canvas.drawText(Amount ,400,1080,myPaint);
+
+
+
+
+
+
+
+
 
         myPdfDocument.finishPage(myPage1);
-        File file=new File(Environment.getExternalStorageDirectory(),"/myReport.pdf");
+        File file=new File(ReportsMainActivity.this.getExternalFilesDir("/"),"/myReport.pdf");
         try {
             myPdfDocument.writeTo(new FileOutputStream(file));
 
@@ -112,157 +156,7 @@ public class ReportsMainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private void initView() {
-        tableLayout = (TableLayout) findViewById(R.id.tableLayoutrequest);
-    }
-
-    private void loadData() {
-        List<request_details> requests = new ArrayList<request_details>();
-        requests.add(new request_details("", "","", "Description for request 1"));
-        requests.add(new request_details("", "", "", "Description for request 2"));
-        requests.add(new request_details("p03", "Name 3","", "Description for request 3"));
-
-        requests.add(new request_details("", "", "", ""));
-        requests.add(new request_details("", "", "", ""));
-
-        //requests.add(new request_details("p04", "Name 4", 11, "Description for request 4", R.drawable.thumb1));
-       // requests.add(new request("p05", "Name 5", 5, "Description for request 5", R.drawable.thumb2));
-     //   requests.add(new request("p06", "Name 6", 21, "Description for request 6", R.drawable.thumb3));
-       // requests.add(new request("p07", "Name 7", 15, "Description for request 7", R.drawable.thumb1));
-     //   requests.add(new request("p08", "Name 8", 8, "Description for request 8", R.drawable.thumb2));
-     //   requests.add(new request("p09", "Name 9", 32, "Description for request 9", R.drawable.thumb3));
-
-        createColumns();
-
-        fillData(requests);
-
-    }
-
-    private void createColumns() {
-        TableRow tableRow = new TableRow(this);
-        tableRow.setLayoutParams(new TableRow.LayoutParams(
-                TableRow.LayoutParams.FILL_PARENT,
-                TableRow.LayoutParams.WRAP_CONTENT));
-
-        // Id Column
-        TextView textViewId = new TextView(this);
-        textViewId.setText("date");
-        textViewId.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        textViewId.setPadding(5, 5, 5, 0);
-        tableRow.addView(textViewId);
-
-        // Name Column
-        TextView textViewName = new TextView(this);
-        textViewName.setText("carpart");
-        textViewName.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        textViewName.setPadding(5, 5, 5, 0);
-        tableRow.addView(textViewName);
-
-        // Price Column
-        TextView textViewPrice = new TextView(this);
-        textViewPrice.setText("carmodel");
-        textViewPrice.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        textViewPrice.setPadding(5, 5, 5, 0);
-        tableRow.addView(textViewPrice);
-
-        // Photo Column
-        TextView textViewPhoto = new TextView(this);
-        textViewPhoto.setText("mechanic");
-        textViewPhoto.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        textViewPhoto.setPadding(5, 5, 5, 0);
-        tableRow.addView(textViewPhoto);
-
-        tableLayout.addView(tableRow, new TableLayout.LayoutParams(
-                TableRow.LayoutParams.FILL_PARENT,
-                TableRow.LayoutParams.WRAP_CONTENT));
-
-        // Add Divider
-        tableRow = new TableRow(this);
-        tableRow.setLayoutParams(new TableRow.LayoutParams(
-                TableRow.LayoutParams.FILL_PARENT,
-                TableRow.LayoutParams.WRAP_CONTENT));
-
-        // Id Column
-        textViewId = new TextView(this);
-        textViewId.setText("-----------");
-        textViewId.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        textViewId.setPadding(5, 5, 5, 0);
-        tableRow.addView(textViewId);
-
-        // Name Column
-        textViewName = new TextView(this);
-        textViewName.setText("-----------");
-
-        textViewName.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        textViewName.setPadding(5, 5, 5, 0);
-        tableRow.addView(textViewName);
-
-        // Price Column
-        textViewPrice = new TextView(this);
-        textViewPrice.setText("-----------");
-        textViewPrice.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        textViewPrice.setPadding(5, 5, 5, 0);
-        tableRow.addView(textViewPrice);
-
-        // Photo Column
-        textViewPhoto = new TextView(this);
-        textViewPhoto.setText("-------------------------");
-        textViewPhoto.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        textViewPhoto.setPadding(5, 5, 5, 0);
-        tableRow.addView(textViewPhoto);
-
-        tableLayout.addView(tableRow, new TableLayout.LayoutParams(
-                TableRow.LayoutParams.FILL_PARENT,
-                TableRow.LayoutParams.WRAP_CONTENT));
-
-    }
-
-    private void fillData(List<request_details> request_detailsList) {
-        for (request_details request : request_detailsList) {
-            TableRow tableRow = new TableRow(this);
-            tableRow.setLayoutParams(new TableRow.LayoutParams(
-                    TableRow.LayoutParams.FILL_PARENT,
-                    TableRow.LayoutParams.WRAP_CONTENT));
-
-            tableRow.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    TableRow currentRow = (TableRow) view;
-                    TextView textViewId = (TextView) currentRow.getChildAt(0);
-                    String id = textViewId.getText().toString();
-                    Toast.makeText(getApplicationContext(), id, Toast.LENGTH_LONG).show();
-                }
-            });
-
-            // Id Column
-            TextView textViewId = new TextView(this);
-            textViewId.setText(request.getDate());
-            textViewId.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-            textViewId.setPadding(5, 5, 5, 0);
-            tableRow.addView(textViewId);
-
-            // Name Column
-            TextView textViewName = new TextView(this);
-            textViewName.setText(request.getCarPart());
-            textViewName.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-            textViewName.setPadding(5, 5, 5, 0);
-            tableRow.addView(textViewName);
-
-            // Price Column
-            TextView textViewPrice = new TextView(this);
-            textViewPrice.setText( String.valueOf(request.getCarProblemDescription()));
-            textViewPrice.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-            textViewPrice.setPadding(5, 5, 5, 0);
-            tableRow.addView(textViewPrice);
-
-
-
-            tableLayout.addView(tableRow, new TableLayout.LayoutParams(
-                    TableRow.LayoutParams.FILL_PARENT,
-                    TableRow.LayoutParams.WRAP_CONTENT));
-        }
+        myPdfDocument.close();
     }
 
 

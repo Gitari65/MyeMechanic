@@ -59,6 +59,7 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
     LinearLayout layout,layoutWorkDetails;
     String paymentMethod,cost,price,problem, time;
     String []payment={"Mpesa","Cash","Bank"};
+    ProgressDialog pd;
 
     //kenedychomba87@gmail.com
     @Override
@@ -71,6 +72,13 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
         buttonBack=findViewById(R.id.btnselectdriver_back);
         buttonToggle=findViewById(R.id.btnToggleDriverDetails);
         buttonSaveWork=findViewById(R.id.btnSaveWorkDetails);
+        //storing spinner
+
+        pd = new ProgressDialog(MechanicSelectDriver.this);
+        pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        pd.setMessage("Saving....");
+        pd.setIndeterminate(true);
+        pd.setCancelable(false);
 
         textViewEmail=findViewById(R.id.verydriver_emailD);
         textViewphoneno=findViewById(R.id.verydriver_phonenumberD);
@@ -203,13 +211,7 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
             return;
         }
 
-        //storing spinner
-        ProgressDialog pd;
-        pd = new ProgressDialog(MechanicSelectDriver.this);
-        pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        pd.setMessage("Saving....");
-        pd.setIndeterminate(true);
-        pd.setCancelable(false);
+
         pd.show();
         DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy @ HH:mm", Locale.US);
         String recordDate = dateFormat.format(new Date());
@@ -231,18 +233,23 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
                     user3.put("workProblem",problem);
                     user3.put("recordDate",recordDate);
                     user3.put("timeTaken",time);
+
                     ds.getRef().updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
 
-                            pd.hide();
+                            pd.dismiss();
                             Toast.makeText(getApplicationContext(),"Work Saved Successfully",Toast.LENGTH_SHORT).show();
+                            editTextCost.setText("");
+                            editTextPrice.setText("");
+                            editTexttimeTaken.setText("");
+                            editTextProblem.setText("");
 
                         }
                     }).addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            pd.hide();
+                            pd.dismiss();
                             Toast.makeText(getApplicationContext(),"saving failed try again later",Toast.LENGTH_SHORT).show();
 
                         }
@@ -252,7 +259,7 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
-                pd.hide();
+                pd.dismiss();
                 Toast.makeText(getApplicationContext(),"Work not saved check you connection",Toast.LENGTH_SHORT).show();
 
             }
@@ -309,6 +316,7 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+
 
                     }
                 });

@@ -26,6 +26,35 @@ public class request_details {
 
     private  String carModel;
 
+    public String getWorkProblem() {
+        return workProblem;
+    }
+
+    public void setWorkProblem(String workProblem) {
+        this.workProblem = workProblem;
+    }
+
+    private  String workProblem;
+
+    public String getWorkPrice() {
+        return workPrice;
+    }
+
+    public void setWorkPrice(String workPrice) {
+        this.workPrice = workPrice;
+    }
+
+    public String getWorkExpense() {
+        return workExpense;
+    }
+
+    public void setWorkExpense(String workExpense) {
+        this.workExpense = workExpense;
+    }
+
+    private  String workPrice;
+    private  String workExpense;
+
     public String getMechanicId() {
         return mechanicId;
     }

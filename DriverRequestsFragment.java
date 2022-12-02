@@ -119,18 +119,20 @@ public class DriverRequestsFragment extends Fragment implements RecyclerViewInte
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Fetching data....");
         progressDialog.show();
-        MyEventChangeListener();
+       // MyEventChangeListener();
 
 
         return view;
     }
 
+
     @Override
     public void onStart() {
         super.onStart();
-        myRAdapter.notifyDataSetChanged();
+   MyEventChangeListener();
         if(progressDialog.isShowing()){
             progressDialog.dismiss();
+
         }
     }
 

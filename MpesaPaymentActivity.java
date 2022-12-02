@@ -18,8 +18,8 @@ import com.androidstudy.daraja.util.TransactionType;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
 public class MpesaPaymentActivity extends AppCompatActivity {
-    String CONSUMER_KEY = "V20h0w0WUJUpZBLJFufR5XuScg6czdAQ";
-    String CONSUMER_SECRET = "2k7901XCA24exJ6K";
+    String CONSUMER_KEY = "JoWqG6vOIa5IJn6Ccoj3qROWicOSvtXA";
+    String CONSUMER_SECRET = "1AKQWXAzAJUpOeIw";
     Daraja daraja;
     Button  btnpayment;
 private ProgressDialog progressDialog;
@@ -43,8 +43,8 @@ btnpayment=findViewById(R.id.buttonPay2);
                 Log.e(MpesaPaymentActivity.this.getClass().getSimpleName(), error);
             }
         });
-        String mobile="0725507616";
-        String AMOUNT="20";
+        String mobile="0705465998";
+        String AMOUNT="1";
         btnpayment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

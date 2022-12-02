@@ -136,6 +136,7 @@ public class DriverSelectMechanic extends AppCompatActivity  {
     DocumentSnapshot documentSnapshot;
     TextView textView,txtInfoUpdate;
     String childKey;
+    String  mechanicPhoneNumber,  mechanicEmail,firstName, secondName,garageLocation;
 
 
 
@@ -145,23 +146,10 @@ public class DriverSelectMechanic extends AppCompatActivity  {
         setContentView(R.layout.activity_driver_select_mechanic);
        // ActionBar actionBar = getSupportActionBar();
       //  actionBar.hide();
-        String firstName = getIntent().getStringExtra("fName");
-        String secondName = getIntent().getStringExtra("sName");
-        String mechanicEmail = getIntent().getStringExtra("email");
-        String mechanicToken = getIntent().getStringExtra("mechanicToken");
-        String mechanicPhoneNumber= getIntent().getStringExtra("phonenumber");
-        String profilePhotoUrl = getIntent().getStringExtra("profilephotourl");
+
         String current_userId = getIntent().getStringExtra("currentuserid");
-        String licenseUrl = getIntent().getStringExtra("licenceUrl");
 
 
-        String garageLocation = getIntent().getStringExtra("garageLocation");
-        String garageName = getIntent().getStringExtra("garageName");
-
-        Log.d(TAG, "onCreate: "+garageName);
-        Log.d(TAG, "onCreate: "+current_userId);
-        Log.d(TAG, "onCreate: "+licenseUrl);
-        Log.d(TAG, "onCreate: "+garageLocation);
 
  layout= (LinearLayout) findViewById(R.id.layoutDetails);
         layoutDetails= (LinearLayout) findViewById(R.id.layoutMehanicDetails);
@@ -193,13 +181,9 @@ buttonReviews=findViewById(R.id.btn_viewratings);
 
 
 
-        editTextl.setText(garageLocation);
-        editTexts.setText(secondName);
-        editTextf.setText(firstName);
-        editTexte.setText(mechanicEmail);
-        editTextp.setText(mechanicPhoneNumber);
 
         //String verificationStatustext = editTextv.getText().toString().trim();\
+        getMechanicDetails();
 
         layout.setVisibility(View.GONE);
         RequestPopUpWindow();
@@ -312,7 +296,7 @@ RequestProcessingDetails();
            callPhoneNumber();
        }
    });
-   getMechanicDetails();
+
         Log.d(TAG, "onCreate: garage name"+garagename);
 
 
@@ -395,9 +379,23 @@ RequestProcessingDetails();
                         if (task.isSuccessful()) {
                             documentSnapshot = task.getResult();
                             if (documentSnapshot.exists()) {
-                             garagename= documentSnapshot.getString("garageName");
-                             String profileImageUrl=documentSnapshot.getString("profilePhotoUrl");
+
+                                garagename= documentSnapshot.getString("garageName");
+                                garageLocation= documentSnapshot.getString("garageLocation");
+                                firstName=documentSnapshot.getString("firstName");
+                                secondName=documentSnapshot.getString("secondName");
+                                mechanicEmail=documentSnapshot.getString("mechanicEmail");
+
+
+
+                                String profileImageUrl=documentSnapshot.getString("profilePhotoUrl");
                                 Picasso.get().load(profileImageUrl).into(imageViewp);
+                                editTextl.setText(garageLocation);
+                                editTexts.setText(secondName);
+                                editTextf.setText(firstName);
+                                editTexte.setText(mechanicEmail);
+                                editTextp.setText(mechanicPhoneNumber);
+
                                 buttonLocation.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {

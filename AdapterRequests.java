@@ -130,7 +130,7 @@ getDriverDetails();
                                 public void onSuccess(Void unused) {
                                     SaveWorkHistory();
 
-                                    Toast.makeText(context, " accepted request succefully ",Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, " accepted request successfully ",Toast.LENGTH_SHORT).show();
 
                                     Intent intent=new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
                                     intent.putExtra("driversId", current_userId);
@@ -160,7 +160,7 @@ getDriverDetails();
             public void onClick(View v) {
                 Intent intent =new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
                 intent.putExtra("driversId",current_userId);
-                intent.putExtra("date", date);
+                intent.putExtra("date",  req.getDate());
                 context.startActivity(intent);
             }
         });

@@ -86,9 +86,9 @@ public class AdapterReports extends RecyclerView.Adapter<AdapterReports.MyViewHo
         status=req.getStatus();
         current_userId=req.getDriversId();
         date= req.getDate();
-        holder.textViewProblem.setText(req.getProblem());
+        holder.textViewProblem.setText(req.getWorkProblem());
         holder.textViewUser.setText(req.getDriverFirstName());
-        holder.textViewAmount.setText(req.getAmount());
+        holder.textViewAmount.setText(req.getWorkPrice());
         holder.textViewDate.setText(req.getResponseDate());
 
 

@@ -62,6 +62,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -135,6 +136,7 @@ public class DriverSelectMechanic extends AppCompatActivity  {
     Button buttonCall, buttonReviews,buttonBack,buttonToggle,buttonMessage,buttonMessagePop,buttonFindOtherMechs,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
     DocumentSnapshot documentSnapshot;
     TextView textView,txtInfoUpdate;
+    ImageView imageView;
     String childKey;
     String  mechanicPhoneNumber,  mechanicEmail,firstName, secondName,garageLocation;
 
@@ -160,6 +162,7 @@ public class DriverSelectMechanic extends AppCompatActivity  {
 
 buttonReviews=findViewById(R.id.btn_viewratings);
         buttoncancel=findViewById(R.id.btncancelRequestmech);
+        imageView=findViewById(R.id.imageViewHome);
         buttonMessage=findViewById(R.id.btnchatMech);
         buttonToggle=findViewById(R.id.btnToggleMechDeatils);
         editTextf = findViewById(R.id.verymechanic_firstnameD);
@@ -206,6 +209,14 @@ buttonReviews=findViewById(R.id.btn_viewratings);
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), RatingMainActivity.class);
                 intent.putExtra("mechanicId", current_userId);
+
+                startActivity(intent);
+            }
+        });
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), DriversHomeActivity.class);
 
                 startActivity(intent);
             }
@@ -274,6 +285,7 @@ RequestProcessingDetails();
                 //cancelling request
                 String current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
                 CancellingRequest();
+
 
 
 
@@ -431,63 +443,94 @@ RequestProcessingDetails();
         super.onStop();
     }
 
-    @Override
-    public void onBackPressed() {
-        if (pressedTime + 2000>System.currentTimeMillis()){
-            super.onBackPressed();
 
-        }
-        else
-        {
-            Toast.makeText(getApplicationContext(), "press back again to view more mechanics",Toast.LENGTH_SHORT).show();
-
-
-        }
-
-
-
-    }
     public void CancellingRequest(){
+        String date=getIntent().getStringExtra("date");
         String childKey=getIntent().getStringExtra("childKey");
-
-
-        DatabaseReference db;
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
+        Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
         current_userId = getIntent().getStringExtra("currentuserid");
+        ValueEventListener valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("status", "cancelled");
+                    map.put("mechanicId", "");
+                    ds.getRef().updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            //String status="rejected";
+
+
+                            Toast.makeText(getApplicationContext(), " cancelling... ",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), " cancelled ",Toast.LENGTH_SHORT).show();
+                            if(buttonrequest.getVisibility() == View.GONE){
+                                buttonrequest.setVisibility(View.VISIBLE);
+                            }
+                            if(buttoncancel.getVisibility() == View.VISIBLE){
+                                buttoncancel.setVisibility(View.GONE);
+                            }
 
 
 
-        db = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
-        db.child(childKey).child("status").setValue("cancelled");
-        db.child(childKey).child("mechanicId").setValue("").
-                addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        Toast.makeText(context, "Request cancelled ",Toast.LENGTH_SHORT).show();
-                        buttoncancel.setVisibility(View.GONE);
-                        buttonrequest.setVisibility(View.VISIBLE);
 
-                    }
-                });
+
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+            }
+        };
+        userQuery.addListenerForSingleValueEvent(valueEventListener);
+
+
 
     }
     public void RequestingMechanicDb(){
         String childKey=getIntent().getStringExtra("childKey");
+        String date=getIntent().getStringExtra("date");
 
 
-        DatabaseReference db;
-         current_userId = getIntent().getStringExtra("currentuserid");
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
+        Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
+        current_userId = getIntent().getStringExtra("currentuserid");
+        ValueEventListener valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("status", "sent");
+                    map.put("mechanicId", current_userId);
+                    ds.getRef().updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            //String status="rejected";
+
+                            Toast.makeText(getApplicationContext(), " requesting... ",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), " waiting for mechanic... ",Toast.LENGTH_SHORT).show();
 
 
 
-        db = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
-        db.child(childKey).child("status").setValue("sent");
-        db.child(childKey).child("mechanicId").setValue(current_userId).
-                addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
 
-                    }
-                });
+
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+            }
+        };
+        userQuery.addListenerForSingleValueEvent(valueEventListener);
+
+
 
     }
 
@@ -555,8 +598,17 @@ RequestProcessingDetails();
             @Override
             public void onClick(View v) {
                 Intent intent=new Intent(getApplicationContext(),DriverViewMechanics.class);
-                String childKey=getIntent().getStringExtra("childKey");
-                intent.putExtra("childKey", childKey);
+
+                current_userId = getIntent().getStringExtra("currentuserid");
+                String carProblemDescription=getIntent().getStringExtra("carProblemDescription");
+                String carModel=getIntent().getStringExtra("carModel");
+                String carPart=getIntent().getStringExtra("carPart");
+                String date=getIntent().getStringExtra("date");
+
+                intent.putExtra("carPart", carPart);
+                intent.putExtra("carModel", carModel);
+                intent.putExtra("date", date);
+                intent.putExtra("currentuserid", current_userId);
                 startActivity(intent);
             }
         });
@@ -593,71 +645,84 @@ RequestProcessingDetails();
     public void RequestProcessingDetails(){
         FirebaseAuth mAuth= FirebaseAuth.getInstance();
         FirebaseUser userID  = mAuth.getCurrentUser();
+        String date=getIntent().getStringExtra("date");
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String current_userIdm = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String childKey=getIntent().getStringExtra("childKey");
         DatabaseReference db2 = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
 
-        db2.addValueEventListener(new ValueEventListener() {
+
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
+        Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
+        current_userId = getIntent().getStringExtra("currentuserid");
+        ValueEventListener valueEventListener = new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot userSnapshot: dataSnapshot.getChildren()) {
-                    // check for desired id here
-                    if(userSnapshot.getKey().equals(childKey)) {
-                        String status= userSnapshot.child("status").getValue().toString();
-                        if (Objects.equals(status, "accepted")){
-                            Log.d(TAG, "onComplete: driverRequest Pop**");
-                            buttonrequest.setVisibility(View.GONE);
-                            layout.setVisibility(View.VISIBLE);
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
 
-                            textView.setText("Accepted");
-                            textView.setTextColor(Color.GREEN);
-                            txtInfoUpdate.setText("Mechanic is to contact you");
+                    ds.getRef().addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            String status= (String) snapshot.child("status").getValue();
+                            if (Objects.equals(status, "accepted")){
+                                Log.d(TAG, "onComplete: driverRequest Pop**");
+                                buttonrequest.setVisibility(View.GONE);
+                                layout.setVisibility(View.VISIBLE);
 
-                            progressBar.setVisibility(View.GONE);
-                            layoutPop.setVisibility(View.VISIBLE);
-                            btnCancelPop.setVisibility(View.GONE);
+                                textView.setText("Accepted");
+                                textView.setTextColor(Color.GREEN);
+                                txtInfoUpdate.setText("Mechanic is to contact you");
+
+                                progressBar.setVisibility(View.GONE);
+                                layoutPop.setVisibility(View.VISIBLE);
+                                btnCancelPop.setVisibility(View.GONE);
 
 
 
-                        }
-                        if (Objects.equals(status, "rejected")){
-                            textView.setText("Denied XX");
-                            txtInfoUpdate.setText("You can go back and try to get other mechanics");
-                            Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic might be unavailable",Toast.LENGTH_SHORT).show();
-                            btnCancelPop.setVisibility(View.VISIBLE);
-                            buttonFindOtherMechs.setVisibility(View.VISIBLE);
+                            }
+                            if (Objects.equals(status, "rejected")){
+                                textView.setText("Denied XX");
+                                txtInfoUpdate.setText("You can go back and try to get other mechanics");
+                                Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic might be unavailable",Toast.LENGTH_SHORT).show();
+                                btnCancelPop.setVisibility(View.VISIBLE);
+                                buttonFindOtherMechs.setVisibility(View.VISIBLE);
 
 
 //kahuko.alex19@students.dkut.ac.ke
 
+                            }
+                            if (Objects.equals(status, "sent")){
+                                Log.d(TAG, "onComplete: driverRequest Pop**");
+                                buttonrequest.setVisibility(View.GONE);
+                                layout.setVisibility(View.GONE);
+
+                                buttonrequest.setText("waiting....");
+                                buttoncancel.setVisibility(View.VISIBLE);
+                                progressBar.setVisibility(View.VISIBLE);
+                                layoutPop.setVisibility(View.GONE);
+                                btnCancelPop.setVisibility(View.GONE);
+
+
+
+                            }
+
                         }
-                        if (Objects.equals(status, "sent")){
-                            Log.d(TAG, "onComplete: driverRequest Pop**");
-                            buttonrequest.setVisibility(View.GONE);
-                            layout.setVisibility(View.GONE);
 
-                            buttonrequest.setText("waiting....");
-                            buttoncancel.setVisibility(View.VISIBLE);
-                            progressBar.setVisibility(View.VISIBLE);
-                            layoutPop.setVisibility(View.GONE);
-                            btnCancelPop.setVisibility(View.GONE);
-
-
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
 
                         }
-                    }
+                    });
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                throw databaseError.toException();
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
             }
-        });
-
-
+        };
+        userQuery.addListenerForSingleValueEvent(valueEventListener);
 
 
 

@@ -26,14 +26,17 @@ import android.widget.Adapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.EventListener;
@@ -49,7 +52,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -77,8 +82,8 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
     Bitmap bmp,scaledbmp;
     EditText editText;
     String searchdate;
-    int pageWidth=1200;
-    String printDate,Amount,Problem,date,carModel,user;
+    int pageWidth=1700;
+    String printDate,Amount,Problem,date,carModel,user,total,Payment,Expense;
     ProgressBar loadingPB;
 
     public ReportsFragment() {
@@ -271,36 +276,38 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
         Paint myPaint=new Paint();
 
 
-        PdfDocument.PageInfo myPageInfo1=new PdfDocument.PageInfo.Builder(1200,2010,1).create();
+        PdfDocument.PageInfo myPageInfo1=new PdfDocument.PageInfo.Builder(1700,2010,1).create();
         PdfDocument.Page myPage1=myPdfDocument.startPage(myPageInfo1);
         Canvas canvas=myPage1.getCanvas();
-        canvas.drawBitmap(scaledbmp,0,0,myPaint);
+        canvas.drawBitmap(scaledbmp,0,50,myPaint);
 
         titlePaint.setTextAlign(Paint.Align.CENTER);
         titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT,Typeface.BOLD));
         titlePaint.setTextSize(70);
-        canvas.drawText("e-Mechanic Services",pageWidth/2,270,titlePaint);
+        canvas.drawText("e-Mechanic Services",pageWidth/2,600,titlePaint);
 
         myPaint.setColor(Color.rgb(0,113,188));
         myPaint.setTextSize(30f);
         myPaint.setTextAlign(Paint.Align.RIGHT);
-        canvas.drawText("call: 0748344757",1160,40,myPaint);
-        canvas.drawText("email: agitari65@gmail.com",1160,60,myPaint);
+        canvas.drawText("call: 0748344757",1500,40,myPaint);
+        canvas.drawText("email: agitari65@gmail.com",1500,60,myPaint);
 
         titlePaint.setTextAlign(Paint.Align.CENTER);
         titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT,Typeface.ITALIC));
-        canvas.drawText("REPORT",pageWidth/2,500,titlePaint);
+        canvas.drawText("REPORT",pageWidth/2,700,titlePaint);
 
         myPaint.setTextAlign(Paint.Align.LEFT);
         myPaint.setTextSize(35f);
         myPaint.setColor(Color.BLACK);
-        canvas.drawText("CustomerName: ",20,590,myPaint);
+        canvas.drawText("CustomerName: ",20,700,myPaint);
 
         myPaint.setTextAlign(Paint.Align.RIGHT);
         myPaint.setTextSize(35f);
         myPaint.setColor(Color.BLACK);
-        canvas.drawText("Invoice no: ",pageWidth-20,590,myPaint);
-        canvas.drawText("Date: "+printDate,pageWidth-20,640,myPaint);
+        canvas.drawText("Invoice no: ",pageWidth-20,700,myPaint);
+        canvas.drawText("Date: "+printDate,pageWidth-20,740,myPaint);
+        canvas.drawText("Margins Kshs/=: "+total,pageWidth-20,1100,myPaint);
+
 
         myPaint.setStyle(Paint.Style.STROKE);
         myPaint.setStrokeWidth(2);
@@ -308,22 +315,31 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
 
         myPaint.setTextAlign(Paint.Align.LEFT);
         myPaint.setStyle(Paint.Style.FILL);
-        canvas.drawText("S1. No: ",40,830,myPaint);
-        canvas.drawText("Date: ",120,830,myPaint);
-        canvas.drawText("CarProblem: ",200,830,myPaint);
-        canvas.drawText("CarModel ",280,830,myPaint);
-        canvas.drawText("User ",360,830,myPaint);
-        canvas.drawText("Amount ",400,830,myPaint);
+        canvas.drawText("Date: ",40,830,myPaint);
+        canvas.drawText("CarProblem: ",320,830,myPaint);
+        canvas.drawText("CarModel ",525,830,myPaint);
+        canvas.drawText("Customer ",700,830,myPaint);
+        canvas.drawText("Amount ",890,830,myPaint);
+        canvas.drawText("Payment ",1050,830,myPaint);
+        canvas.drawText("Expense Kshs/=",1250,830,myPaint);
 
-        canvas.drawLine(180,790,180,840,myPaint);
-        canvas.drawLine(680,790,680,840,myPaint);
+
+        canvas.drawLine(300,790,300,840,myPaint);
+        canvas.drawLine(515,790,515,840,myPaint);
+        canvas.drawLine(690,790,690,840,myPaint);
         canvas.drawLine(880,790,880,840,myPaint);
+        canvas.drawLine(1050,790,1050,840,myPaint);
+        canvas.drawLine(1220,790,1220,840,myPaint);
 
-        canvas.drawText("||"+date ,120,880,myPaint);
-        canvas.drawText("||"+Problem ,200,930,myPaint);
-        canvas.drawText("||"+carModel ,280,980,myPaint);
-        canvas.drawText("||"+user ,360,1030,myPaint);
-        canvas.drawText("||"+ Amount ,400,1080,myPaint);
+
+        canvas.drawText("||"+date ,0,930,myPaint);
+        canvas.drawText("||"+Problem ,350,930,myPaint);
+        canvas.drawText("||"+carModel ,540,930,myPaint);
+        canvas.drawText("||"+user ,700,930,myPaint);
+        canvas.drawText("||"+ Amount ,890,930,myPaint);
+        canvas.drawText("||"+ Payment ,1050,930,myPaint);
+        canvas.drawText("||"+ Expense ,1230,930,myPaint);
+
 
 
 
@@ -337,6 +353,10 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
         File file=new File(requireActivity().getExternalFilesDir("/"),"/myReport.pdf");
         try {
             myPdfDocument.writeTo(new FileOutputStream(file));
+            Toast.makeText(getActivity(), " Downloading... ",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), " Downloaded",Toast.LENGTH_SHORT).show();
+
+
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -346,28 +366,61 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
         myPdfDocument.close();
     }
     public  void  getReportDetails(){
-
-        //database
-        String  userId= FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference reference= FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("MechanicWork");
-        reference.orderByChild("date").equalTo(searchdate).addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("MechanicWork");
+        Query userQuery = additionalUserInfoRef.orderByChild("responseDate").equalTo(searchdate);
+        ValueEventListener valueEventListener = new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Problem= (String) snapshot.child("carPart").getValue();
-                Amount= (String) snapshot.child("workPrice").getValue();
-                carModel= (String) snapshot.child("carModel").getValue();
-                user= (String) snapshot.child("driverFirstName").getValue();
-                date= (String) snapshot.child("date").getValue();
-                createPDF();
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+
+                    ds.getRef().addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            Problem= (String) snapshot.child("workProblem").getValue();
+                            Amount= (String) snapshot.child("workPrice").getValue();
+                            carModel= (String) snapshot.child("carModel").getValue();
+                            user= (String) snapshot.child("driverFirstName").getValue();
+                            date= (String) snapshot.child("date").getValue();
+                            Payment= (String) snapshot.child("paymentMethod").getValue();
+                            Expense= (String) snapshot.child("workExpense").getValue();
+                            if(Amount==null& Expense==null){
+                                int payment=0;
+                                int expense=0;
+                                total="0";
+                            }
+                            if(Amount==null){
+                                int payment=0;
+                            }
+
+                            if(Amount!=null& Expense!=null){
+                                int payment= Integer.parseInt(Amount);
+                                int expense= Integer.parseInt(Expense);
+                                int margin=payment-expense;
+                                total= String.valueOf(margin);
+                            }
 
 
+
+                            createPDF();
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                }
             }
-
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
             }
-        });
+        };
+        userQuery.addListenerForSingleValueEvent(valueEventListener);
+
+
+
     }
 
 }

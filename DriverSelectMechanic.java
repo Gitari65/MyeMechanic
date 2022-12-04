@@ -135,7 +135,7 @@ public class DriverSelectMechanic extends AppCompatActivity  {
 
     Button buttonCall, buttonReviews,buttonBack,buttonToggle,buttonMessage,buttonMessagePop,buttonFindOtherMechs,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
     DocumentSnapshot documentSnapshot;
-    TextView textView,txtInfoUpdate;
+    TextView textView,txtInfoUpdate,textViewPayment;
     ImageView imageView;
     String childKey;
     String  mechanicPhoneNumber,  mechanicEmail,firstName, secondName,garageLocation;
@@ -175,7 +175,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         // editTextv=findViewById(R.id.verymechanic_verystatus);
         // imageViewl=findViewById(R.id.mech_licencePicv);
         imageViewp = findViewById(R.id.mech_profilePicD);
-        imageButtonmpesa=findViewById(R.id.btn_driverPaymech);
+        textViewPayment=findViewById(R.id.btn_driverPaymech);
 
         //setting images to imageview
         //Picasso.get().load(profilePhotoUrl).into(imageViewp);
@@ -187,6 +187,8 @@ buttonReviews=findViewById(R.id.btn_viewratings);
 
         //String verificationStatustext = editTextv.getText().toString().trim();\
         getMechanicDetails();
+      //  RequestProcessingDetails();
+
 
         layout.setVisibility(View.GONE);
         RequestPopUpWindow();
@@ -207,8 +209,14 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         buttonReviews.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String date=getIntent().getStringExtra("date");
+                String mechanicPhoneNumber= getIntent().getStringExtra("phonenumber");
+
                 Intent intent = new Intent(getApplicationContext(), RatingMainActivity.class);
                 intent.putExtra("mechanicId", current_userId);
+                intent.putExtra("date", date);
+
+                intent.putExtra("phonenumber", mechanicPhoneNumber);
 
                 startActivity(intent);
             }
@@ -221,14 +229,16 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 startActivity(intent);
             }
         });
-        imageButtonmpesa.setOnClickListener(new View.OnClickListener() {
+        textViewPayment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String mechanicPhoneNumber= getIntent().getStringExtra("phonenumber");
-
-                Intent intent = new Intent(getApplicationContext(), MpesaSimulationActivity.class);
+                String date=getIntent().getStringExtra("date");
+                Intent intent = new Intent(getApplicationContext(), MpesaPaymentActivity.class);
                 intent.putExtra("mechanicId", current_userId);
                 intent.putExtra("phonenumber", mechanicPhoneNumber);
+                intent.putExtra("date", date);
+
 
                 startActivity(intent);
             }
@@ -241,7 +251,15 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         buttonBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), DriverProblemActivity.class);
+                Intent intent = new Intent(getApplicationContext(), DriverViewMechanics.class);
+                String date=getIntent().getStringExtra("date");
+                String carPart=getIntent().getStringExtra("carPart");
+                String carModel=getIntent().getStringExtra("carModel");
+
+                intent.putExtra("carPart", carPart);
+                intent.putExtra("carModel", carModel);
+                intent.putExtra("currentuserid", current_userId);
+                intent.putExtra("date", date);
 
                 startActivity(intent);
 
@@ -260,18 +278,20 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                     i++;
                     MainLocationCode();
                     MatchedMechanicId();
-                    mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
+                    RequestingMechanic();
+                   // mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
 
                     //FIREBASE REALTIME
 
 
-                    RequestingMechanicDb();
+
 
                 }
                 else{
                    // RequestPopUpWindow();
+                    RequestProcessingDetails();
                     mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
-RequestProcessingDetails();
+
                 }
 
 
@@ -285,6 +305,7 @@ RequestProcessingDetails();
                 //cancelling request
                 String current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
                 CancellingRequest();
+               // RequestProcessingDetails();
 
 
 
@@ -436,6 +457,15 @@ RequestProcessingDetails();
     protected void onStart() {
         super.onStart();
         RequestProcessingDetails();
+
+
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        RequestProcessingDetails();
+
     }
 
     @Override
@@ -466,6 +496,9 @@ RequestProcessingDetails();
 
                             Toast.makeText(getApplicationContext(), " cancelling... ",Toast.LENGTH_SHORT).show();
                             Toast.makeText(getApplicationContext(), " cancelled ",Toast.LENGTH_SHORT).show();
+                            RequestProcessingDetails();
+                            mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
+
                             if(buttonrequest.getVisibility() == View.GONE){
                                 buttonrequest.setVisibility(View.VISIBLE);
                             }
@@ -491,7 +524,7 @@ RequestProcessingDetails();
 
 
     }
-    public void RequestingMechanicDb(){
+    public void RequestingMechanic(){
         String childKey=getIntent().getStringExtra("childKey");
         String date=getIntent().getStringExtra("date");
 
@@ -515,6 +548,11 @@ RequestProcessingDetails();
                             Toast.makeText(getApplicationContext(), " requesting... ",Toast.LENGTH_SHORT).show();
                             Toast.makeText(getApplicationContext(), " waiting for mechanic... ",Toast.LENGTH_SHORT).show();
 
+                            RequestProcessingDetails();
+
+                            mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
+                            textView.setText("waiting..");
+                            txtInfoUpdate.setText("waiting to get  mechanics response");
 
 
 
@@ -594,6 +632,18 @@ RequestProcessingDetails();
         buttonFindOtherMechs=customView.findViewById(R.id.buttonFindOtherMechPop);
         btnCancelPop=customView.findViewById(R.id.buttonCancelrequestPop);
         progressBar=customView.findViewById(R.id.requestProgressBarPop);
+        //message
+        buttonMessagePop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPopupWindow.dismiss();
+
+                String current_userId = getIntent().getStringExtra("currentuserid");
+                Intent intent = new Intent(getApplicationContext(), FloatingChatActivity.class);
+                intent.putExtra("uid", current_userId);
+                startActivity(intent);
+            }
+        });
         buttonFindOtherMechs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -655,9 +705,9 @@ RequestProcessingDetails();
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
-        Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
+        Query userQuery1 = additionalUserInfoRef.orderByChild("date").equalTo(date);
         current_userId = getIntent().getStringExtra("currentuserid");
-        ValueEventListener valueEventListener = new ValueEventListener() {
+        ValueEventListener valueEventListener1 = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot ds : dataSnapshot.getChildren()) {
@@ -673,7 +723,7 @@ RequestProcessingDetails();
 
                                 textView.setText("Accepted");
                                 textView.setTextColor(Color.GREEN);
-                                txtInfoUpdate.setText("Mechanic is to contact you");
+                                txtInfoUpdate.setText("Mechanic is to contact you check your chats");
 
                                 progressBar.setVisibility(View.GONE);
                                 layoutPop.setVisibility(View.VISIBLE);
@@ -686,8 +736,20 @@ RequestProcessingDetails();
                                 textView.setText("Denied XX");
                                 txtInfoUpdate.setText("You can go back and try to get other mechanics");
                                 Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic might be unavailable",Toast.LENGTH_SHORT).show();
-                                btnCancelPop.setVisibility(View.VISIBLE);
+                                btnCancelPop.setVisibility(View.GONE);
                                 buttonFindOtherMechs.setVisibility(View.VISIBLE);
+
+
+//kahuko.alex19@students.dkut.ac.ke
+
+                            }
+                            if (Objects.equals(status, "cancelled")){
+                                textView.setText("cancelled XX");
+                                txtInfoUpdate.setText("You can go back and try to get other mechanics");
+                              //  Toast.makeText(getApplicationContext(), "request REJECTED XX mechanic might be unavailable",Toast.LENGTH_SHORT).show();
+                                btnCancelPop.setVisibility(View.GONE);
+                                buttonFindOtherMechs.setVisibility(View.VISIBLE);
+                                buttonrequest.setText("Request");
 
 
 //kahuko.alex19@students.dkut.ac.ke
@@ -708,6 +770,7 @@ RequestProcessingDetails();
 
                             }
 
+
                         }
 
                         @Override
@@ -722,7 +785,7 @@ RequestProcessingDetails();
                 Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
             }
         };
-        userQuery.addListenerForSingleValueEvent(valueEventListener);
+        userQuery1.addValueEventListener(valueEventListener1);
 
 
 
@@ -981,7 +1044,10 @@ RequestProcessingDetails();
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        locationTrack.stopListener();
+        if (locationTrack !=null){
+            locationTrack.stopListener();
+        }
+
     }
 
     public void updateLocationToFirestore(){
@@ -1070,6 +1136,7 @@ RequestProcessingDetails();
         });
 
     }
+
 
 
     public void updateToken() {

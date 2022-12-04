@@ -26,6 +26,16 @@ public class request_details {
 
     private  String carModel;
 
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+
+    private  String paymentStatus;
+
     public String getWorkProblem() {
         return workProblem;
     }

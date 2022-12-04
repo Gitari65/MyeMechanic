@@ -85,6 +85,40 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         carPart=req.getCarPart();
         status=req.getStatus();
         current_userId=req.getDriversId();
+
+            FirebaseAuth mAuth= FirebaseAuth.getInstance();
+            FirebaseUser userID  = mAuth.getCurrentUser();
+
+
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            if (current_userId!=null){
+                db.collection("Drivers").document(current_userId).get()
+                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    documentSnapshot = task.getResult();
+                                    if (documentSnapshot.exists()) {
+
+                                        driverFirstName= documentSnapshot.getString("driverFirstName");
+                                        driverSecondName= documentSnapshot.getString("driverSecondName");
+                                        driverEmail= documentSnapshot.getString("driverEmail");
+                                        driverPhoneNumber= documentSnapshot.getString("driverPhoneNumber");
+
+                                    }
+                                }
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+
+                            }
+                        });
+            }
+
+
+
         date= req.getDate();
         holder.textViewcarPart.setText(req.getCarPart());
         holder.textViewrequeststatus.setText(req.getStatus());
@@ -104,7 +138,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
             holder.buttonAccept.setVisibility(View.GONE);
             holder.buttonView.setVisibility(View.GONE);
         }
-getDriverDetails();
+
 
 
         holder.buttonAccept.setOnClickListener(new View.OnClickListener() {
@@ -209,7 +243,7 @@ getDriverDetails();
                         Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
                     }
                 };
-                userQuery.addListenerForSingleValueEvent(valueEventListener);
+                userQuery.addValueEventListener(valueEventListener);
 
             }
         });
@@ -224,6 +258,10 @@ getDriverDetails();
         userToy1.put("carPart", carPart);
         userToy1.put("carProblemDescription", carProblemDescription);
         userToy1.put("driverFirstName", driverFirstName);
+
+        userToy1.put("driverPhoneNumber", driverPhoneNumber);
+
+
         userToy1.put("finalStatus", "");
         userToy1.put("responseDate", responseDate);
         userToy1.put("status", status);
@@ -240,35 +278,7 @@ getDriverDetails();
             }
         });
     }
-    public void getDriverDetails(){
-        FirebaseAuth mAuth= FirebaseAuth.getInstance();
-        FirebaseUser userID  = mAuth.getCurrentUser();
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        db.collection("Drivers").document(current_userId).get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            documentSnapshot = task.getResult();
-                            if (documentSnapshot.exists()) {
-
-                                 driverFirstName= documentSnapshot.getString("driverFirstName");
-                                 driverSecondName= documentSnapshot.getString("driverSecondName");
-                                 driverEmail= documentSnapshot.getString("driverEmail");
-                                 driverPhoneNumber= documentSnapshot.getString("driverPhoneNumber");
-
-                            }
-                        }
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-
-                    }
-                });
-    }
 
 
 

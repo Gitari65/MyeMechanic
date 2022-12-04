@@ -151,6 +151,8 @@ public class DriverLogin extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.d(TAG, "onFailure: null snapshot");
+                progressBar.setVisibility(View.GONE);
+
                 Toast.makeText(getApplicationContext(),"failed!!check email or password",Toast.LENGTH_LONG).show();
 
             }
@@ -177,6 +179,8 @@ public class DriverLogin extends AppCompatActivity {
                         startActivity(intent);}
                     else {
                         Log.d(TAG, "onComplete: details not found");
+                        progressBar.setVisibility(View.GONE);
+
                         Toast.makeText(getApplicationContext(),"failed!!check email or password",Toast.LENGTH_LONG).show();
 
                     }
@@ -185,6 +189,8 @@ public class DriverLogin extends AppCompatActivity {
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
+                progressBar.setVisibility(View.GONE);
+
                 Log.d(TAG, "onFailure: null snapshot");            }
         });
     }

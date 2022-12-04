@@ -177,6 +177,8 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
         buttonBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent=new Intent( getApplicationContext(),MainActivity.class);
+                startActivity(intent);
 
             }
         });
@@ -233,7 +235,7 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
                     user3.put("workProblem",problem);
                     user3.put("recordDate",recordDate);
                     user3.put("timeTaken",time);
-
+                    user3.put("paymentStatus","not paid");
                     ds.getRef().updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void unused) {

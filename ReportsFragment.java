@@ -83,7 +83,7 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
     EditText editText;
     String searchdate;
     int pageWidth=1700;
-    String printDate,Amount,Problem,date,carModel,user,total,Payment,Expense;
+    String printDate,Amount,Problem,date,carModel,user,phone,total,Payment,Expense,paymentStatus;
     ProgressBar loadingPB;
 
     public ReportsFragment() {
@@ -279,7 +279,7 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
         PdfDocument.PageInfo myPageInfo1=new PdfDocument.PageInfo.Builder(1700,2010,1).create();
         PdfDocument.Page myPage1=myPdfDocument.startPage(myPageInfo1);
         Canvas canvas=myPage1.getCanvas();
-        canvas.drawBitmap(scaledbmp,0,50,myPaint);
+        canvas.drawBitmap(scaledbmp,150,50,myPaint);
 
         titlePaint.setTextAlign(Paint.Align.CENTER);
         titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT,Typeface.BOLD));
@@ -289,8 +289,8 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
         myPaint.setColor(Color.rgb(0,113,188));
         myPaint.setTextSize(30f);
         myPaint.setTextAlign(Paint.Align.RIGHT);
-        canvas.drawText("call: 0748344757",1500,40,myPaint);
-        canvas.drawText("email: agitari65@gmail.com",1500,60,myPaint);
+        canvas.drawText("call: 0748344757",1600,40,myPaint);
+        canvas.drawText("email: agitari65@gmail.com",1600,60,myPaint);
 
         titlePaint.setTextAlign(Paint.Align.CENTER);
         titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT,Typeface.ITALIC));
@@ -315,13 +315,15 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
 
         myPaint.setTextAlign(Paint.Align.LEFT);
         myPaint.setStyle(Paint.Style.FILL);
-        canvas.drawText("Date: ",40,830,myPaint);
-        canvas.drawText("CarProblem: ",320,830,myPaint);
+        canvas.drawText("Date  Time ",40,830,myPaint);
+        canvas.drawText("CarProblem",320,830,myPaint);
         canvas.drawText("CarModel ",525,830,myPaint);
         canvas.drawText("Customer ",700,830,myPaint);
         canvas.drawText("Amount ",890,830,myPaint);
-        canvas.drawText("Payment ",1050,830,myPaint);
-        canvas.drawText("Expense Kshs/=",1250,830,myPaint);
+        canvas.drawText("Payment ",1055,830,myPaint);
+        canvas.drawText("Expense Kshs/=",1230,830,myPaint);
+
+        canvas.drawText("Status",1505,830,myPaint);
 
 
         canvas.drawLine(300,790,300,840,myPaint);
@@ -330,20 +332,17 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
         canvas.drawLine(880,790,880,840,myPaint);
         canvas.drawLine(1050,790,1050,840,myPaint);
         canvas.drawLine(1220,790,1220,840,myPaint);
+        canvas.drawLine(1500,790,1500,840,myPaint);
 
-
-        canvas.drawText("||"+date ,0,930,myPaint);
-        canvas.drawText("||"+Problem ,350,930,myPaint);
-        canvas.drawText("||"+carModel ,540,930,myPaint);
-        canvas.drawText("||"+user ,700,930,myPaint);
-        canvas.drawText("||"+ Amount ,890,930,myPaint);
-        canvas.drawText("||"+ Payment ,1050,930,myPaint);
-        canvas.drawText("||"+ Expense ,1230,930,myPaint);
-
-
-
-
-
+        canvas.drawText("| "+date ,0,930,myPaint);
+        canvas.drawText("| "+Problem ,350,930,myPaint);
+        canvas.drawText("| "+carModel ,540,930,myPaint);
+        canvas.drawText("| "+user ,700,930,myPaint);
+        canvas.drawText("| "+phone ,700,970,myPaint);
+        canvas.drawText("| "+ Amount ,890,930,myPaint);
+        canvas.drawText("| "+ Payment ,1050,930,myPaint);
+        canvas.drawText("| "+ Expense ,1230,930,myPaint);
+        canvas.drawText("| "+ paymentStatus ,1505,930,myPaint);
 
 
 
@@ -381,9 +380,13 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
                             Amount= (String) snapshot.child("workPrice").getValue();
                             carModel= (String) snapshot.child("carModel").getValue();
                             user= (String) snapshot.child("driverFirstName").getValue();
+                            phone = (String) snapshot.child("driverPhoneNumber").getValue();
+
                             date= (String) snapshot.child("date").getValue();
                             Payment= (String) snapshot.child("paymentMethod").getValue();
                             Expense= (String) snapshot.child("workExpense").getValue();
+                            paymentStatus=(String) snapshot.child("paymentStatus").getValue();
+
                             if(Amount==null& Expense==null){
                                 int payment=0;
                                 int expense=0;

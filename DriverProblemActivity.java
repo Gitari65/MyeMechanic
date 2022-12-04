@@ -205,7 +205,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                         uploadImage();
                         //storing spinner
                         DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy @ HH:mm", Locale.US);
-                        String date = dateFormat.format(new Date());
+                         final  String  date = dateFormat.format(new Date());
                         carProblemDescription = editText.getText().toString();
                         String user_id = FirebaseAuth.getInstance().getCurrentUser().getUid();
                         FirebaseFirestore dbEn = FirebaseFirestore.getInstance();
@@ -240,6 +240,8 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                                             intent1.putExtra("carPart", carPart);
                                             intent1.putExtra("driverId", user_id);
                                             intent1.putExtra("childKey", childKey);
+                                            intent1.putExtra("date", date);
+
                                             intent1.putExtra("carProblemDescription",carProblemDescription);
 
 

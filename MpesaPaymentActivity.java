@@ -1,5 +1,7 @@
 package com.example.myemechanic;
 
+import static android.content.ContentValues.TAG;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -8,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.androidstudy.daraja.Daraja;
 import com.androidstudy.daraja.DarajaListener;
@@ -15,21 +18,54 @@ import com.androidstudy.daraja.model.AccessToken;
 import com.androidstudy.daraja.model.LNMExpress;
 import com.androidstudy.daraja.model.LNMResult;
 import com.androidstudy.daraja.util.TransactionType;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.shashank.sony.fancytoastlib.FancyToast;
+
+import java.util.Objects;
 
 public class MpesaPaymentActivity extends AppCompatActivity {
     String CONSUMER_KEY = "JoWqG6vOIa5IJn6Ccoj3qROWicOSvtXA";
     String CONSUMER_SECRET = "1AKQWXAzAJUpOeIw";
     Daraja daraja;
-    Button  btnpayment;
+    Button  btnpayment,btnConfirm,btnDecline;
+    String mobile;
+    String AMOUNT;
+    DocumentSnapshot documentSnapshot;
+    String driverSecondName,driverFirstName,driverEmail,driverPhoneNumber;
+    String Problem,date,carModel,Payment,Amount;
+    TextView textViewProblem,textViewPayment,textViewTime,textViewCarModel;
+
 private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mpesa_payment);
-        progressDialog = new ProgressDialog(this);
-btnpayment=findViewById(R.id.buttonPay2);
+        progressDialog = new ProgressDialog(MpesaPaymentActivity.this);
+
+        textViewPayment=findViewById(R.id.textViewConfirmPayment);
+        textViewCarModel=findViewById(R.id.textViewConfirmCarModel);
+        textViewProblem=findViewById(R.id.textViewConfirmProblem);
+        textViewTime=findViewById(R.id.textViewConfirmTime);
+        btnpayment=findViewById(R.id.buttonPay2);
+        btnConfirm=findViewById(R.id.buttonConfirm2);
+        getDriverDetails();
+        getReportDetails();
+
+
+
+
 
         //for Mpesa
         daraja = Daraja.with(CONSUMER_KEY, CONSUMER_SECRET, new DarajaListener<AccessToken>() {
@@ -43,12 +79,11 @@ btnpayment=findViewById(R.id.buttonPay2);
                 Log.e(MpesaPaymentActivity.this.getClass().getSimpleName(), error);
             }
         });
-        String mobile="0705465998";
-        String AMOUNT="1";
+
         btnpayment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                makeMpesaPayment(mobile, AMOUNT);
+                makeMpesaPayment(driverPhoneNumber, Amount);
             }
         });
 
@@ -56,7 +91,7 @@ btnpayment=findViewById(R.id.buttonPay2);
     }
     private void makeMpesaPayment(String mobile, String  amount){
         progressDialog.setTitle("Please Wait...");
-        progressDialog.setMessage("Processing MPesa Request");
+        progressDialog.setMessage("Processing MPESA Request");
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
 
@@ -93,5 +128,115 @@ btnpayment=findViewById(R.id.buttonPay2);
                 }
         );
     }
+    public  void getDriverDetails()
+    {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String userId= FirebaseAuth.getInstance().getCurrentUser().getUid();
+        db.collection("Drivers").document(userId).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            documentSnapshot = task.getResult();
+                            if (documentSnapshot.exists()) {
+
+                                driverFirstName= documentSnapshot.getString("driverFirstName");
+                                driverSecondName= documentSnapshot.getString("driverSecondName");
+                                driverEmail= documentSnapshot.getString("driverEmail");
+                                driverPhoneNumber= documentSnapshot.getString("driverPhoneNumber");
+
+                            }
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                    }
+                });
+    }
+    public  void  getReportDetails(){
+        String Date1=getIntent().getStringExtra("date");
+
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("MechanicWork");
+        Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(Date1);
+        ValueEventListener valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+
+                    ds.getRef().addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            Problem= (String) snapshot.child("workProblem").getValue();
+                            Amount= (String) snapshot.child("workPrice").getValue();
+                            carModel= (String) snapshot.child("carModel").getValue();
+                           // user= (String) snapshot.child("driverFirstName").getValue();
+                            //phone = (String) snapshot.child("driverPhoneNumber").getValue();
+                           String paymentStatus=(String)snapshot.child("paymentStatus").getValue();
+
+                            date= (String) snapshot.child("recordDate").getValue();
+                            Payment= (String) snapshot.child("paymentMethod").getValue();
+
+
+                            textViewPayment.setText(Amount);
+                            textViewTime.setText(date);
+                            textViewCarModel.setText(carModel);
+                            textViewProblem.setText(Problem);
+
+                            if(Amount==null){
+                                textViewPayment.setText("Waiting for Pricing");
+                                btnConfirm.setVisibility(View.GONE);
+                                btnpayment.setVisibility(View.GONE);
+
+                            }
+                            else
+                            {
+                                if(Objects.equals(paymentStatus, "paid")){
+                                    btnConfirm.setText("Already Paid");
+                                    btnConfirm.setVisibility(View.VISIBLE);
+                                    btnConfirm.setEnabled(false);
+
+
+                                }
+                                else{
+
+                                    if(Objects.equals(Payment, "Mpesa")){
+
+                                        btnpayment.setVisibility(View.VISIBLE);
+
+                                    }
+                                    if(Objects.equals(Payment, "Cash")){
+
+                                        btnConfirm.setVisibility(View.VISIBLE);
+
+                                    }
+                                }
+
+                            }
+
+
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+            }
+        };
+        userQuery.addValueEventListener(valueEventListener);
+
+
+
+    }
+
 
 }

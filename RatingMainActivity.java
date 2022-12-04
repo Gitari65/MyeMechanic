@@ -67,6 +67,7 @@ ProgressDialog progressDialog;
     private Button mButton;
     RecyclerView recyclerView;
     TextView textView;
+    ImageButton imageButtonBack;
 
 
     private PopupWindow mPopupWindow;
@@ -75,6 +76,7 @@ ProgressDialog progressDialog;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rating_main);
 ratingBar=findViewById(R.id.total_star_rating);
+imageButtonBack=findViewById(R.id.btn_backratings);
 
 
         getDriverDetails();
@@ -96,11 +98,28 @@ ratingBar=findViewById(R.id.total_star_rating);
 
         setTotalRatings();
         textView=findViewById(R.id.tv_Addreview);
+
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String date=getIntent().getStringExtra("date");
+
                 Intent intent = new Intent(getApplicationContext(), RateMechanicActivity.class);
                 intent.putExtra("mechanicId", current_userId);
+                intent.putExtra("date", date);
+
+
+                startActivity(intent);
+            }
+        });
+        imageButtonBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String date=getIntent().getStringExtra("date");
+
+                Intent intent = new Intent(getApplicationContext(), DriverSelectMechanic.class);
+                intent.putExtra("currentuserid", current_userId);
+                intent.putExtra("date", date);
 
                 startActivity(intent);
             }
@@ -237,6 +256,7 @@ ratingBar=findViewById(R.id.total_star_rating);
                         final DatabaseReference newRef = db.child("MechanicReviews").child(current_userId).child("AverageRating");
                         newRef.child("current").setValue(average);
                         ratingBar.setRating((float) average);
+
 
                     }
 

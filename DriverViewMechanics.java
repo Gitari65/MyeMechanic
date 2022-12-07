@@ -105,7 +105,7 @@ public class DriverViewMechanics extends AppCompatActivity implements  RecyclerV
         // CollectionReference mydbRef = db.collection("mechanics");
 
 
-        db1.collection("mechanics").whereEqualTo(carPart, "True").addSnapshotListener(new EventListener<QuerySnapshot>() {
+        db1.collection("mechanics").whereEqualTo(carPart, "True").whereEqualTo("registrationStatus","verified").addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                 if (error!=null){

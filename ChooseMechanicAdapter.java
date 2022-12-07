@@ -28,7 +28,9 @@ public class ChooseMechanicAdapter extends RecyclerView.Adapter<ChooseMechanicAd
     private final RecyclerViewInterface recyclerViewInterface;
     ArrayList<mechanic_details> mechanicsArrayList;
     String current_userId;
+    String rating;
     double Ratings;
+
 
     public ChooseMechanicAdapter(Context context, ArrayList<mechanic_details> mechanicsArrayList, RecyclerViewInterface recyclerViewInterface) {
         this.context = context;
@@ -52,9 +54,18 @@ public class ChooseMechanicAdapter extends RecyclerView.Adapter<ChooseMechanicAd
         holder.textViewfname.setText(mech.getFirstName());
         holder.textViewsname.setText(mech.getSecondName());
         current_userId=mech.getCurrent_userId();
+        if(mech.getMechanicRating()!=null)
+        {
 
-        getRatingDetails();
-        holder.ratingBar.setRating((float) Ratings);
+            Ratings=mech.getMechanicRating();
+            // holder.ratingBar.setRating((float) rating);
+
+            holder.ratingBar.setRating((float) Ratings);
+
+
+        }
+
+
 
     }
 
@@ -90,49 +101,7 @@ public class ChooseMechanicAdapter extends RecyclerView.Adapter<ChooseMechanicAd
             // imageViewmechprofile=itemView.findViewById(R.id.imgview_mechanicprofilephoto);
         }
     }
-    public  void  getRatingDetails(){
 
-
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        Query userQuery = rootRef.child("MechanicReviews").child("Ratings").child(current_userId).child("AverageRating");
-
-        ValueEventListener valueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot ds : dataSnapshot.getChildren()) {
-
-                    ds.getRef().addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            String rating= (String) snapshot.child("current").getValue();
-                            if(rating!=null){
-                                Ratings= Double.parseDouble(rating);
-                            }
-                            if(rating==null)
-                            {
-                                Ratings=0.0;
-                            }
-
-
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-
-                        }
-                    });
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
-            }
-        };
-        userQuery.addListenerForSingleValueEvent(valueEventListener);
-
-
-
-    }
 
 }
 

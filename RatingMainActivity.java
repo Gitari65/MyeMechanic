@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -29,6 +30,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -39,6 +41,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -46,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class RatingMainActivity extends AppCompatActivity implements RecyclerViewInterface {
 RatingBar simpleRatingBar,ratingBar;
@@ -97,6 +101,7 @@ imageButtonBack=findViewById(R.id.btn_backratings);
         String current_userId = getIntent().getStringExtra("mechanicId");
 
         setTotalRatings();
+        String carPart=getIntent().getStringExtra("carPart");
         textView=findViewById(R.id.tv_Addreview);
 
         textView.setOnClickListener(new View.OnClickListener() {
@@ -104,8 +109,17 @@ imageButtonBack=findViewById(R.id.btn_backratings);
             public void onClick(View v) {
                 String date=getIntent().getStringExtra("date");
 
+
                 Intent intent = new Intent(getApplicationContext(), RateMechanicActivity.class);
                 intent.putExtra("mechanicId", current_userId);
+                intent.putExtra("date", date);
+                //String date=getIntent().getStringExtra("date");
+                String carPart=getIntent().getStringExtra("carPart");
+                String carModel=getIntent().getStringExtra("carModel");
+
+                intent.putExtra("carPart", carPart);
+                intent.putExtra("carModel", carModel);
+                intent.putExtra("currentuserid", current_userId);
                 intent.putExtra("date", date);
 
 
@@ -118,6 +132,14 @@ imageButtonBack=findViewById(R.id.btn_backratings);
                 String date=getIntent().getStringExtra("date");
 
                 Intent intent = new Intent(getApplicationContext(), DriverSelectMechanic.class);
+                intent.putExtra("currentuserid", current_userId);
+                intent.putExtra("date", date);
+               // String date=getIntent().getStringExtra("date");
+                String carPart=getIntent().getStringExtra("carPart");
+                String carModel=getIntent().getStringExtra("carModel");
+
+                intent.putExtra("carPart", carPart);
+                intent.putExtra("carModel", carModel);
                 intent.putExtra("currentuserid", current_userId);
                 intent.putExtra("date", date);
 
@@ -245,6 +267,7 @@ imageButtonBack=findViewById(R.id.btn_backratings);
                                 total = total + rating;
                                 count = count + 1;
                                 average = total / count;
+
                             }
                             else{
                                 Log.d(TAG, "onDataChange: nullsnapshot");
@@ -256,6 +279,16 @@ imageButtonBack=findViewById(R.id.btn_backratings);
                         final DatabaseReference newRef = db.child("MechanicReviews").child(current_userId).child("AverageRating");
                         newRef.child("current").setValue(average);
                         ratingBar.setRating((float) average);
+                        Map<String, Object> user3 = new HashMap<>();
+                        user3.put("mechanicRating",average);
+                        FirebaseFirestore db3 = FirebaseFirestore.getInstance();
+                        db3.collection("mechanics").document(current_userId).set(user3, SetOptions.merge())
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        Log.d(ContentValues.TAG, "onSuccess: spinner stored");
+                                    }
+                                });
 
 
                     }

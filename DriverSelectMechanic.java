@@ -215,6 +215,14 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 Intent intent = new Intent(getApplicationContext(), RatingMainActivity.class);
                 intent.putExtra("mechanicId", current_userId);
                 intent.putExtra("date", date);
+                //String date=getIntent().getStringExtra("date");
+                String carPart=getIntent().getStringExtra("carPart");
+                String carModel=getIntent().getStringExtra("carModel");
+
+                intent.putExtra("carPart", carPart);
+                intent.putExtra("carModel", carModel);
+                intent.putExtra("currentuserid", current_userId);
+                intent.putExtra("date", date);
 
                 intent.putExtra("phonenumber", mechanicPhoneNumber);
 
@@ -1066,6 +1074,10 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                             public void onComplete(@NonNull Task<Void> task) {
                                 if(task.isSuccessful()){
                                     FancyToast.makeText(DriverSelectMechanic.this,"location Updated !",FancyToast.LENGTH_LONG,FancyToast.DEFAULT,true);
+
+                                }
+                                else{
+                                    FancyToast.makeText(DriverSelectMechanic.this," failed location Update!",FancyToast.LENGTH_LONG,FancyToast.DEFAULT,true);
 
                                 }
                             }

@@ -21,6 +21,17 @@ public class mechanic_details {
 
     private  String mechanicCurrentLongitude;
 
+
+    public Double getMechanicRating() {
+        return mechanicRating;
+    }
+
+    public void setMechanicRating(Double mechanicRating) {
+        this.mechanicRating = mechanicRating;
+    }
+
+    private  Double mechanicRating;
+
     private String registrationStatus;
 
     public String getMechanicPartSpecialization() {

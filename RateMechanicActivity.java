@@ -55,6 +55,14 @@ DocumentSnapshot snapshot,documentSnapshot;
             public void onClick(View v) {
                 Intent intent=new Intent(RateMechanicActivity.this,RatingMainActivity.class);
                 intent.putExtra("mechanicId", current_userId);
+                String date=getIntent().getStringExtra("date");
+                String carPart=getIntent().getStringExtra("carPart");
+                String carModel=getIntent().getStringExtra("carModel");
+
+                intent.putExtra("carPart", carPart);
+                intent.putExtra("carModel", carModel);
+                intent.putExtra("currentuserid", current_userId);
+                intent.putExtra("date", date);
 
                 startActivity(intent);
             }

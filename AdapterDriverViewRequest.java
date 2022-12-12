@@ -95,7 +95,7 @@ public class AdapterDriverViewRequest extends RecyclerView.Adapter<AdapterDriver
         holder.buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context.getApplicationContext(), NearestMechanicActivity.class);
+                Intent intent = new Intent(context.getApplicationContext(), MapsActivity.class);
 
                 intent.putExtra("carPart", req.getCarPart());
                 intent.putExtra("carModel", req.getCarModel());

@@ -102,10 +102,22 @@ public class AdapterTechnicians extends RecyclerView.Adapter<AdapterTechnicians.
 
                                 //Timber.tag(TAG).d("onDataChange: driver long%s", dlongitude);
                                 //    Timber.tag(TAG).d("onDataChange: driver lat%s", dlatitude);
+                                if ( snapshot.child("driverLatitude").getValue()!=null)
+                                {
+                                    driverLat=Double.parseDouble((String) snapshot.child("driverLatitude").getValue());
 
-                                driverLat=Double.parseDouble((String) Objects.requireNonNull(snapshot.child("currentLatitude").getValue()));
+                                    driverLong=Double.parseDouble((String) snapshot.child("driverLatitude").getValue());
+                                    if (tech.getCurrentLatitude()!=null){
+                                        getKmFromLatLong(  driverLat.floatValue(),
+                                                driverLong.floatValue(),
+                                                Float.parseFloat(tech.getCurrentLatitude()),
+                                                Float.parseFloat(tech.getCurrentLongitude()));
+                                        holder.textViewDistance.setText(String.valueOf(results));
+                                        Timber.tag(TAG).d(": OnBindView :driver lat%s", driverLat);
+                                    }
 
-                                driverLong=Double.parseDouble((String) Objects.requireNonNull(snapshot.child("currentLatitude").getValue()));
+                                }
+
 //                                if( driverLat !=null && driverLong!=null){
 //                                    distanceInMiles(  driverLat,
 //                                            driverLong,
@@ -114,14 +126,10 @@ public class AdapterTechnicians extends RecyclerView.Adapter<AdapterTechnicians.
 //                                    holder.textViewDistance.setText(String.valueOf(results));
 //                                    Timber.tag(TAG).d(": OnBindView :driver lat%s", driverLat);
 //                                }
-                                if( driverLat !=null && driverLong!=null){
-                                    getKmFromLatLong(  driverLat.floatValue(),
-                                            driverLong.floatValue(),
-                                            Float.parseFloat(tech.getCurrentLatitude()),
-                                            Float.parseFloat(tech.getCurrentLongitude()));
-                                    holder.textViewDistance.setText(String.valueOf(results));
-                                    Timber.tag(TAG).d(": OnBindView :driver lat%s", driverLat);
-                                }
+
+
+
+
 
                             }
 

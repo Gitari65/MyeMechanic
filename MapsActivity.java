@@ -7,6 +7,7 @@ import static android.content.ContentValues.TAG;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,12 +19,24 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.example.myemechanic.databinding.ActivityMapsBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,48 +51,167 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-
-
-public class NearestMechanicActivity extends AppCompatActivity implements RecyclerViewInterface{
+public class MapsActivity extends AppCompatActivity  implements OnMapReadyCallback, RecyclerViewInterface {
     //location
     private ArrayList permissionsToRequest;
     private ArrayList permissionsRejected = new ArrayList();
     private ArrayList permissions = new ArrayList();
     private final static int ALL_PERMISSIONS_RESULT = 101;
     LocationTrack locationTrack;
-  Double currentLongitude,currentLatitude;
-  String driversLocation;
-  RecyclerView recyclerView;
-  AdapterTechnicians myRAdapter;
-  ArrayList<Technician> techniciansArrayList;
-  ProgressDialog progressDialog;
+    Double currentLongitude,currentLatitude;
+    TextView textView;
+    String driversLocation;
+    RecyclerView recyclerView;
+    AdapterTechnicians myRAdapter;
+    ArrayList<Technician> techniciansArrayList,techniciansArrayList1;
+    ProgressDialog progressDialog;
+    LinearLayout layout;
 
-  //imports
-
-
-
+    private GoogleMap mMap;
+    private ActivityMapsBinding binding;
+    Marker marker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_nearest_mechanic);
+        setContentView(R.layout.activity_maps);
 
-        recyclerView=findViewById(R.id.myrecylerviewTechnicians);
+
+                layout=findViewById(R.id.layoutMapsDetails);
+textView=findViewById(R.id.textviewtoggleMaps);
+        recyclerView=findViewById(R.id.myrecylerviewNearTechnicians);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-
+        // toggle details
+        textView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(layout.getVisibility() == View.VISIBLE){
+                    layout.setVisibility(View.GONE);
+                } else {
+                    layout.setVisibility(View.VISIBLE);
+                }
+            }
+        });
         techniciansArrayList=new ArrayList<Technician>();
+        techniciansArrayList1=new ArrayList<Technician>();
+
+
+
         myRAdapter = new AdapterTechnicians(getApplicationContext(),techniciansArrayList, (RecyclerViewInterface) this);
 
-        progressDialog=new ProgressDialog(NearestMechanicActivity.this);
+        progressDialog=new ProgressDialog(MapsActivity.this);
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Fetching data....");
         //progressDialog.show();
 
+
         MainLocationCode();
-        getNearestMechanic();
+        //getNearestMechanic();
+//        binding = ActivityMapsBinding.inflate(getLayoutInflater());
+//        setContentView(binding.getRoot());
+        // techniciansArrayList.add(technician);
+
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+
     }
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+       // techniciansArrayList=new ArrayList<Technician>();
+getCurrentLocation();
+        LatLng latLng1 = new LatLng(currentLatitude, currentLongitude);
+
+        marker = mMap.addMarker(new MarkerOptions().position(latLng1).title("You"));
+
+
+//        // Add a marker in Sydney and move the camera
+//        LatLng sydney = new LatLng(-34, 151);
+//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        mMap = googleMap;
+        googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        DatabaseReference myref=FirebaseDatabase.getInstance().getReference("Technicians");
+        myref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot s : dataSnapshot.getChildren()) {
+                    Technician  technician = s.getValue(Technician.class);
+
+                    techniciansArrayList1.add(technician);
+                    for (int i = 0; i < techniciansArrayList1.size(); i++) {
+                        if (technician.currentLatitude!=null){
+                            LatLng latLng = new LatLng(Double.parseDouble(technician.currentLatitude), Double.parseDouble(technician.currentLongitude));
+                            if (mMap != null) {
+                                marker = mMap.addMarker(new MarkerOptions().position(latLng).title(technician.firstNamee));
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
     ///location
+    private  void  getCurrentLocation(){
+        permissions.add(ACCESS_FINE_LOCATION);
+        permissions.add(ACCESS_COARSE_LOCATION);
+
+        permissionsToRequest = findUnAskedPermissions(permissions);
+        //get the permissions we have asked for before but are not granted..
+        //we will store this in a global list to access later.
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+
+            if (permissionsToRequest.size() > 0)
+                requestPermissions((String[]) permissionsToRequest.toArray(new String[permissionsToRequest.size()]), ALL_PERMISSIONS_RESULT);
+        }
+
+
+        locationTrack = new LocationTrack(MapsActivity.this);
+
+
+        if (locationTrack.canGetLocation()) {
+
+
+            currentLongitude = locationTrack.getLongitude();
+            currentLatitude = locationTrack.getLatitude();
+            Log.d(TAG, "onComplete: current longitude"+currentLongitude);
+            Log.d(TAG, "onComplete: current latitude"+currentLatitude);
+
+
+            //Toast.makeText(getApplicationContext(), "Longitude:" + Double.toString(longitude) + "\nLatitude:" + Double.toString(latitude), Toast.LENGTH_SHORT).show();
+        } else {
+
+            locationTrack.showSettingsAlert();
+        }
+
+
+    }
+
     private  void  MainLocationCode(){
         permissions.add(ACCESS_FINE_LOCATION);
         permissions.add(ACCESS_COARSE_LOCATION);
@@ -97,7 +229,7 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
         }
 
 
-        locationTrack = new LocationTrack(NearestMechanicActivity.this);
+        locationTrack = new LocationTrack(MapsActivity.this);
 
 
         if (locationTrack.canGetLocation()) {
@@ -107,9 +239,9 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
             currentLatitude = locationTrack.getLatitude();
             Log.d(TAG, "onComplete: current longitude"+currentLongitude);
             Log.d(TAG, "onComplete: current latitude"+currentLatitude);
+getNearestMechanic();
 
-
-           updateLocationToFirebase();
+            updateLocationToFirebase();
 
             //Toast.makeText(getApplicationContext(), "Longitude:" + Double.toString(longitude) + "\nLatitude:" + Double.toString(latitude), Toast.LENGTH_SHORT).show();
         } else {
@@ -123,8 +255,8 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
     private void updateLocationToFirebase() {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Technicians");
-      //  GeoFire geoFire = new GeoFire(ref);
-      //  geoFire.setLocation(userId, new GeoLocation(40.2334983, -3.7185183));
+        //  GeoFire geoFire = new GeoFire(ref);
+        //  geoFire.setLocation(userId, new GeoLocation(40.2334983, -3.7185183));
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference additionalUserInfoRef = rootRef.child("Technicians");
@@ -136,8 +268,8 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
 
                     Map<String, Object> user3 = new HashMap<>();
 
-                    user3.put("currentLongitude",String.valueOf(currentLongitude));
-                    user3.put("currentLatitude",String.valueOf(currentLatitude));
+                    user3.put("driverLongitude",String.valueOf(currentLongitude));
+                    user3.put("driverLatitude",String.valueOf(currentLatitude));
 
 
                     ds.getRef().updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -252,7 +384,7 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
     }
 
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(NearestMechanicActivity.this)
+        new AlertDialog.Builder(MapsActivity.this)
                 .setMessage(message)
                 .setPositiveButton("OK", okListener)
                 .setNegativeButton("Cancel", null)
@@ -271,15 +403,15 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
                 progressDialog.show();
-               // System.out.println(String.format("Key %s entered the search area at [%f,%f]", key, location.latitude, location.longitude));
+                // System.out.println(String.format("Key %s entered the search area at [%f,%f]", key, location.latitude, location.longitude));
                 DatabaseReference locationChild = FirebaseDatabase.getInstance().getReference("Technicians");
                 locationChild.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                      //  String name = dataSnapshot.child("name").getValue(String.class);
-                       // System.out.println(String.format("Electrician name: %s", name));
+                        //  String name = dataSnapshot.child("name").getValue(String.class);
+                        // System.out.println(String.format("Electrician name: %s", name));
                         Technician technician=dataSnapshot.getValue(Technician.class);
-                       techniciansArrayList.add(technician);
+                        techniciansArrayList.add(technician);
                         myRAdapter.notifyDataSetChanged();
                         recyclerView.setAdapter(myRAdapter);
                         if(progressDialog.isShowing()){

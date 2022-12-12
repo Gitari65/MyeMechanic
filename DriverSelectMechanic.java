@@ -671,7 +671,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         buttonFindOtherMechs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(getApplicationContext(),NearestMechanicActivity.class);
+                Intent intent=new Intent(getApplicationContext(),MapsActivity.class);
 
                 current_userId = getIntent().getStringExtra("currentuserid");
                 String carProblemDescription=getIntent().getStringExtra("carProblemDescription");

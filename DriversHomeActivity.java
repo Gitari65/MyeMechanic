@@ -197,8 +197,8 @@ public class DriversHomeActivity extends AppCompatActivity {
 
                     Map<String, Object> user3 = new HashMap<>();
 
-                    user3.put("currentLongitude",String.valueOf(currentLongitude));
-                    user3.put("currentLatitude",String.valueOf(currentLatitude));
+                    user3.put("driverLongitude",String.valueOf(currentLongitude));
+                    user3.put("driverLatitude",String.valueOf(currentLatitude));
 
 
                     ds.getRef().updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {

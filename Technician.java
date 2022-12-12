@@ -37,6 +37,25 @@ public class Technician {
     public   String currentLongitude;
    public   String currentLatitude;
 
+    public String getDriverLongitude() {
+        return driverLongitude;
+    }
+
+    public void setDriverLongitude(String driverLongitude) {
+        this.driverLongitude = driverLongitude;
+    }
+
+    public String getDriverLatitude() {
+        return driverLatitude;
+    }
+
+    public void setDriverLatitude(String driverLatitude) {
+        this.driverLatitude = driverLatitude;
+    }
+
+    public   String driverLongitude;
+    public   String driverLatitude;
+
 
 
 

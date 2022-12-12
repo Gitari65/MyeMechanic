@@ -56,7 +56,7 @@ public class MechanicHomeFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
-ImageView imageViewaccount,imageView,imageViewmessage,imageViewrequests;
+ImageView imageViewaccount,imageView,imageViewmessage,imageViewrequests,imageViewhistory;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -66,7 +66,14 @@ ImageView imageViewaccount,imageView,imageViewmessage,imageViewrequests;
        imageView=view.findViewById(R.id.imgmechanic_account);
         imageViewrequests=view.findViewById(R.id.imgmechanic_requests);
         imageViewmessage=view.findViewById(R.id.imgmechanic_chats);
+        imageViewhistory=view.findViewById(R.id.imgmechanic_history);
+        imageViewhistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                replaceFragment(new ReportsFragment());
 
+            }
+        });
         imageViewmessage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

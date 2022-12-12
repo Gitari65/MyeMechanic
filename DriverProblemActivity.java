@@ -235,7 +235,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
 
                                             FancyToast.makeText(getApplicationContext(), "Upload made successfully", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
 
-                                            Intent intent1 = new Intent(getApplicationContext(), DriverViewMechanics.class);
+                                            Intent intent1 = new Intent(getApplicationContext(), NearestMechanicActivity.class);
                                             intent1.putExtra("carModel", carModel);
                                             intent1.putExtra("carPart", carPart);
                                             intent1.putExtra("driverId", user_id);

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -121,9 +122,9 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
 
     private void updateLocationToFirebase() {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Technicians").child("Locations");
-        GeoFire geoFire = new GeoFire(ref);
-        geoFire.setLocation(userId, new GeoLocation(40.2334983, -3.7185183));
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Technicians");
+      //  GeoFire geoFire = new GeoFire(ref);
+      //  geoFire.setLocation(userId, new GeoLocation(40.2334983, -3.7185183));
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference additionalUserInfoRef = rootRef.child("Technicians");
@@ -134,13 +135,12 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
                 for(DataSnapshot ds : dataSnapshot.getChildren()) {
 
                     Map<String, Object> user3 = new HashMap<>();
-                    Double currentLongitude=36.8508928;
-                    Double currentLatitude=-1.277952;
-                    user3.put("1",currentLongitude);
-                    user3.put("0",currentLatitude);
+
+                    user3.put("currentLongitude",String.valueOf(currentLongitude));
+                    user3.put("currentLatitude",String.valueOf(currentLatitude));
 
 
-                    ds.getRef().child("location").updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    ds.getRef().updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void unused) {
 
@@ -261,10 +261,9 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
     }
     public void getNearestMechanic()
     {
-        DatabaseReference myRef =FirebaseDatabase.getInstance().getReference().child("Technicians");
-        GeoFire geoFire= new GeoFire(myRef.child("location"));
-        Double currentLongitude=36.8508928;
-        Double currentLatitude=-1.277952;
+        DatabaseReference myRef =FirebaseDatabase.getInstance().getReference().child("Geofire");
+        GeoFire geoFire= new GeoFire(myRef);
+
         GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(currentLatitude,currentLongitude), 8587.8 );
 
 
@@ -272,7 +271,7 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
                 progressDialog.show();
-                System.out.println(String.format("Key %s entered the search area at [%f,%f]", key, location.latitude, location.longitude));
+               // System.out.println(String.format("Key %s entered the search area at [%f,%f]", key, location.latitude, location.longitude));
                 DatabaseReference locationChild = FirebaseDatabase.getInstance().getReference("Technicians");
                 locationChild.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -326,6 +325,29 @@ public class NearestMechanicActivity extends AppCompatActivity implements Recycl
 
     @Override
     public void onItemClick(int position) {
+        String carProblemDescription=getIntent().getStringExtra("carProblemDescription");
+        String carModel=getIntent().getStringExtra("carModel");
+        String carPart=getIntent().getStringExtra("carPart");
+        String driverId=getIntent().getStringExtra("driverId");
+        String childKey=getIntent().getStringExtra("childKey");
+        String date=getIntent().getStringExtra("date");
+
+
+        Intent intent = new Intent(getApplicationContext(), DriverSelectMechanic.class);
+        intent.putExtra("fName", techniciansArrayList.get(position).getFirstNamee());
+        intent.putExtra("sName", techniciansArrayList.get(position).getSecondNamee());
+        intent.putExtra("email", techniciansArrayList.get(position).getEmaill());
+        intent.putExtra("phonenumber", techniciansArrayList.get(position).getMobilee());
+
+        intent.putExtra("profilephotourl", techniciansArrayList.get(position).getProfilePhotoUrl());
+        intent.putExtra("currentuserid", techniciansArrayList.get(position).getUserid());
+        intent.putExtra("carPart", carPart);
+        intent.putExtra("childKey", childKey);
+        intent.putExtra("date", date);
+        intent.putExtra("carModel", carModel);
+        intent.putExtra("carProblemDescription", carProblemDescription);
+        intent.putExtra("driverId", driverId);
+        startActivity(intent);
 
     }
 }

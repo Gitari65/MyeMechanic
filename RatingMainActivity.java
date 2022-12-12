@@ -263,6 +263,7 @@ imageButtonBack=findViewById(R.id.btn_backratings);
 
                         for(DataSnapshot ds: dataSnapshot.getChildren()) {
                             if (ds.child("rating").getValue()!=null){
+
                                Float rating = Float.valueOf((ds.child("rating").getValue().toString()));
                                 total = total + rating;
                                 count = count + 1;
@@ -271,13 +272,16 @@ imageButtonBack=findViewById(R.id.btn_backratings);
                             }
                             else{
                                 Log.d(TAG, "onDataChange: nullsnapshot");
+
                             }
 
                         }
 
-
+                        final DatabaseReference newRef1 = db.child("Technicians").child(current_userId).child("mechanicRating");
+                        newRef1.setValue(String.valueOf(average));
                         final DatabaseReference newRef = db.child("MechanicReviews").child(current_userId).child("AverageRating");
                         newRef.child("current").setValue(average);
+
                         ratingBar.setRating((float) average);
                         Map<String, Object> user3 = new HashMap<>();
                         user3.put("mechanicRating",average);
@@ -286,6 +290,7 @@ imageButtonBack=findViewById(R.id.btn_backratings);
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void unused) {
+
                                         Log.d(ContentValues.TAG, "onSuccess: spinner stored");
                                     }
                                 });

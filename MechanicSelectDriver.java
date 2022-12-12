@@ -222,6 +222,7 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         String date = getIntent().getStringExtra("date");
         DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("MechanicWork");
+
         Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
         ValueEventListener valueEventListener = new ValueEventListener() {
             @Override

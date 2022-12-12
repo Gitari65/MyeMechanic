@@ -426,6 +426,10 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                                 firstName=documentSnapshot.getString("firstName");
                                 secondName=documentSnapshot.getString("secondName");
                                 mechanicEmail=documentSnapshot.getString("mechanicEmail");
+                                if(documentSnapshot.getString("mechanicCurrentLongitude")!=null){
+                                    mechanicCurrentLongitude=Double.parseDouble((documentSnapshot.getString("mechanicCurrentLongitude")));
+                                    mechanicCurrentLatitude=Double.parseDouble((documentSnapshot.getString("mechanicCurrentLatitude")));
+                                }
 
 
 
@@ -440,11 +444,12 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                                 buttonLocation.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        String garageLocation = getIntent().getStringExtra("garageLocation");
-                                        Uri gmmIntentUri = Uri.parse("geo:0,0?q= "+garagename+","+garageLocation);
-                                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                                        mapIntent.setPackage("com.google.android.apps.maps");
-                                        startActivity(mapIntent);
+                                        uriParsingGoogleMapsIntents();
+//                                        String garageLocation = getIntent().getStringExtra("garageLocation");
+//                                        Uri gmmIntentUri = Uri.parse("geo:0,0?q= "+garagename+","+garageLocation);
+//                                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+//                                        mapIntent.setPackage("com.google.android.apps.maps");
+//                                        startActivity(mapIntent);
                                     }
                                 });
 
@@ -459,6 +464,17 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                     }
                 });
     }
+    public  void uriParsingGoogleMapsIntents(){
+        //Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://maps.google.com/maps?f=d&daddr="+destinationCityName));
+//        String uri = "http://maps.google.com/maps?saddr="+driverCurrentLatitude+","+driverCurrentLongitude+"+&daddr="+mechanicCurrentLatitude+","+mechanicCurrentLongitude;
+        //String uri = "http://maps.google.com/maps?saddr="+driverCurrentLatitude+","+driverCurrentLongitude+"+&daddr="+mechanicCurrentLatitude+","+mechanicCurrentLongitude;
+//String strUri = "http://maps.google.com/maps?q=loc:" + latitude + "," + longitude + " (" + yourLocationName + ")";
+        String strUri = "http://maps.google.com/maps?q=loc:" + mechanicCurrentLatitude + "," + mechanicCurrentLongitude + " (" + "Label which you want" + ")";
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(strUri));
+        intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+        startActivity(intent);
+    }
+
 
 
     @Override
@@ -655,7 +671,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         buttonFindOtherMechs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(getApplicationContext(),DriverViewMechanics.class);
+                Intent intent=new Intent(getApplicationContext(),NearestMechanicActivity.class);
 
                 current_userId = getIntent().getStringExtra("currentuserid");
                 String carProblemDescription=getIntent().getStringExtra("carProblemDescription");
@@ -1192,6 +1208,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
 
 
     }
+
 
 
 

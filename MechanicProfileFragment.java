@@ -231,6 +231,7 @@ imageView1.setOnClickListener(new View.OnClickListener() {
 
                         }
                     });
+
         }
     @Override
     public void onActivityResult(int requestCode,
@@ -336,8 +337,6 @@ imageView1.setOnClickListener(new View.OnClickListener() {
                                         UploadTask.TaskSnapshot taskSnapshot)
                                 {
 
-
-
                                     // Image uploaded successfully
                                     // Dismiss dialog
                                     progressDialog.dismiss();
@@ -354,6 +353,19 @@ imageView1.setOnClickListener(new View.OnClickListener() {
                                             //Now play with downloadPhotoUrl
                                             //Store data into Firebase Realtime Database
                                             String profilePhoto= downloadPhotoUrl.toString();
+                                            Map<String, Object> userToy = new HashMap<>();
+
+                                            userToy.put("profilePhotoUrl", profilePhoto);
+                                            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                            DatabaseReference myRef2= FirebaseDatabase.getInstance().getReference("Technicians").child(userId);
+                                            myRef2.updateChildren(userToy).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void unused) {
+
+                                                    //  FancyToast.makeText(getApplicationContext(), "Location Updated automatically", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, true).show();
+
+                                                }
+                                            });
                                             Map<String, Object> user = new HashMap<>();
                                             user.put("profilePhotoUrl", profilePhoto);
 

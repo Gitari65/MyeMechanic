@@ -8,6 +8,49 @@ public class Technician {
     String emaill;
     String mobilee;
 
+    public String getMechanicRating() {
+        return mechanicRating;
+    }
+
+    public void setMechanicRating(String mechanicRating) {
+        this.mechanicRating = mechanicRating;
+    }
+
+    private  String mechanicRating;
+
+    public String getCurrentLongitude() {
+        return currentLongitude;
+    }
+
+    public void setCurrentLongitude(String currentLongitude) {
+        this.currentLongitude = currentLongitude;
+    }
+
+    public String getCurrentLatitude() {
+        return currentLatitude;
+    }
+
+    public void setCurrentLatitude(String currentLatitude) {
+        this.currentLatitude = currentLatitude;
+    }
+
+    public   String currentLongitude;
+   public   String currentLatitude;
+
+
+
+
+
+    public String getProfilePhotoUrl() {
+        return profilePhotoUrl;
+    }
+
+    public void setProfilePhotoUrl(String profilePhotoUrl) {
+        this.profilePhotoUrl = profilePhotoUrl;
+    }
+
+    String profilePhotoUrl;
+
     public String getUserid() {
         return userid;
     }
@@ -17,17 +60,11 @@ public class Technician {
     }
 
     String userid;
-    String location;
 
-    public String getOnlineStatus() {
-        return onlineStatus;
-    }
 
-    public void setOnlineStatus(String onlineStatus) {
-        this.onlineStatus = onlineStatus;
-    }
 
-    String onlineStatus;
+
+
 
     public String getTypingTo() {
         return typingTo;
@@ -42,22 +79,22 @@ public class Technician {
 
     }
 
-    public Technician(String firstNamee, String secondNamee, String emaill, String mobilee, String userid, String location,String onlineStatus,String typingTo){
+    public Technician(String firstNamee, String secondNamee, String emaill, String mobilee, String userid,String onlineStatus){
         this.firstNamee = firstNamee;
         this.userid=userid;
         this.secondNamee = secondNamee;
         this.emaill = emaill;
         this.mobilee = mobilee;
-        this.location = location;
-        this.typingTo=typingTo;
-        this.onlineStatus=onlineStatus;
+
+
+
     }
 
     public void setFirstNamee(String firstNamee) {
         this.firstNamee = firstNamee;
     }
 
-    public void setScondNamee(String secondNamee) {
+    public void setSecondNamee(String secondNamee) {
         this.secondNamee = secondNamee;
     }
 
@@ -69,9 +106,7 @@ public class Technician {
         this.mobilee = mobilee;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
+
 
 
     public String getFirstNamee() {
@@ -90,7 +125,6 @@ public class Technician {
         return mobilee;
     }
 
-    public String getLocation() {
-        return location;
-    }
+
+
 }

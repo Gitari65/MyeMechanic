@@ -151,10 +151,14 @@ public class MainChatActivity extends AppCompatActivity {
                         if (onlinestatus.equals("online")) {
                             userstatus.setText(onlinestatus);
                         } else {
-                            Calendar calendar = Calendar.getInstance();
-                            calendar.setTimeInMillis(Long.parseLong(onlinestatus));
-                            String timedate = DateFormat.format("dd/MM/yyyy hh:mm aa", calendar).toString();
-                            userstatus.setText("Last Seen:" + timedate);
+                            if(onlinestatus!="")
+                            {
+                                Calendar calendar = Calendar.getInstance();
+                                calendar.setTimeInMillis(Long.parseLong(onlinestatus));
+                                String timedate = DateFormat.format("dd/MM/yyyy hh:mm aa", calendar).toString();
+                                userstatus.setText("Last Seen:" + timedate);
+                            }
+
                         }
                     }
                     name.setText(nameh);

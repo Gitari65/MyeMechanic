@@ -20,18 +20,23 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -347,6 +352,21 @@ public class UploadActivity extends AppCompatActivity {
                                             //Now play with downloadPhotoUrl
                                             //Store data into Firebase Realtime Database
                                             String profilePhotoUrl= downloadPhotoUrl1.toString();
+                                            Map<String, Object> userToy = new HashMap<>();
+
+                                            userToy.put("profilePhotoUrl", profilePhotoUrl);
+                                            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+
+                                            DatabaseReference myRef2= FirebaseDatabase.getInstance().getReference("Technicians").child(userId);
+                                            myRef2.updateChildren(userToy).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void unused) {
+
+                                                  //  FancyToast.makeText(getApplicationContext(), "Location Updated automatically", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, true).show();
+
+                                                }
+                                            });
                                             Map<String, Object> user1 = new HashMap<>();
                                             user1.put("profilePhotoUrl", profilePhotoUrl);
 

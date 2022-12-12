@@ -134,6 +134,7 @@ DocumentSnapshot snapshot,documentSnapshot;
         hashMap.put("name",driverFirstName);
         hashMap.put("date",date);
 
+
         DatabaseReference ratingRef  = FirebaseDatabase.getInstance().getReference("MechanicReviews").child("Ratings").child(current_userId);
         ratingRef.push().setValue(hashMap).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override

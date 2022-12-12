@@ -196,23 +196,32 @@ String emaill=Email_reg.getText().toString().trim();
          String secondNamee=secondName.getText().toString().trim();
          String firstNamee=firstName.getText().toString().trim();
          String userid= FirebaseAuth.getInstance().getCurrentUser().getUid();
-         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("Technicians");
-         mAuth =FirebaseAuth.getInstance();
+        // String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+         String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+         Map<String, Object> userToy1 = new HashMap<>();
 
-         Technician technician = new Technician(firstNamee,secondNamee,emaill,mobilee,userid,"","","");
-         if (uid != null){
-             databaseReference.child(uid).setValue(technician).addOnCompleteListener(new OnCompleteListener<Void>() {
-                 @Override
-                 public void onComplete(@NonNull Task<Void> task) {
-                    // progressDialog.dismiss();
-                     FancyToast.makeText(getApplicationContext(), "Account Created Successfully", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, true).show();
-                    // startActivity(new Intent(getApplicationContext(), TechnicianHomeActivity.class));
-                     finish();
-                 }
-             });
+         userToy1.put("firstNamee", firstNamee);
+         userToy1.put("secondNamee", secondNamee);
+         userToy1.put("location", "");
+         userToy1.put("emaill", emaill);
+         userToy1.put("typingTo", "noOne");
+         userToy1.put("onlineStatus", "");
+         userToy1.put("userid", userId);
+         userToy1.put("mobilee", mobilee);
 
 
-     }
+         DatabaseReference myRef1=FirebaseDatabase.getInstance().getReference().child("Technicians").child(userId);
+
+
+         myRef1.setValue(userToy1).addOnSuccessListener(new OnSuccessListener<Void>() {
+             @Override
+             public void onSuccess(Void unused) {
+                 Toast.makeText(getApplicationContext(), "Saved  ",Toast.LENGTH_SHORT).show();
+                 FancyToast.makeText(getApplicationContext(), "Account Created Successfully", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, true).show();
+                 // startActivity(new Intent(getApplicationContext(), TechnicianHomeActivity.class));
+                 finish();
+             }
+         });
 
 
 

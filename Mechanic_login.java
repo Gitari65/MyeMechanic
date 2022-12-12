@@ -198,7 +198,7 @@ DocumentSnapshot documentSnapshot5;
                         String status_text= documentSnapshot5.getString("registrationStatus");
 
                         if(Objects.equals(status_text, "verified")){
-                            Intent intent= new Intent(getApplicationContext(), NearestMechanicActivity.class);
+                            Intent intent= new Intent(getApplicationContext(), MainActivity.class);
                             startActivity(intent);
                         }
                         if(Objects.equals(status_text, "pending")){

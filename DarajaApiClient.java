@@ -1,7 +1,7 @@
 package com.example.myemechanic;
 
 
-import com.example.myemechanic.Services.STKPushService;
+
 
 import java.util.concurrent.TimeUnit;
 
@@ -24,6 +24,7 @@ public class DarajaApiClient {
     private boolean isGetAccessToken;
     private String mAuthToken;
     private HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+
 
     public DarajaApiClient setIsDebug(boolean isDebug) {
         this.isDebug = isDebug;
@@ -77,7 +78,9 @@ public class DarajaApiClient {
 
         return retrofit;
     }
-    public STKPushService mpesaService() {
-        return getRestAdapter().create(STKPushService.class);
-    }
+
+//    public STKPushService mpesaService() {
+//        return getRestAdapter().create(STKPushService.class);
+//    }
+//
 }

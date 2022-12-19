@@ -4,45 +4,49 @@ import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.content.ContentValues.TAG;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
-
+import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.ActionBar;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.shashank.sony.fancytoastlib.FancyToast;
 
 import java.util.ArrayList;
@@ -52,7 +56,10 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 DrawerLayout drawerLayout ;
 NavigationView navigationView;
+String myuid;
 ActionBarDrawerToggle actionBarDrawerToggle;
+String refreshToken;
+FirebaseAuth firebaseAuth;
     //location
     private ArrayList permissionsToRequest;
     private ArrayList permissionsRejected = new ArrayList();
@@ -60,6 +67,8 @@ ActionBarDrawerToggle actionBarDrawerToggle;
     private final static int ALL_PERMISSIONS_RESULT = 101;
     LocationTrack locationTrack;
     Double currentLongitude,currentLatitude;
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private final int LOCATION_PERMISSION_CODE=123;
     String driversLocation;
     RecyclerView recyclerView;
     AdapterTechnicians myRAdapter;
@@ -89,9 +98,12 @@ navigationView=findViewById(R.id.navigation_view);
 actionBarDrawerToggle= new ActionBarDrawerToggle(this,drawerLayout,R.string.menu_open,R.string.closed_menu);
 drawerLayout.addDrawerListener(actionBarDrawerToggle);
 actionBarDrawerToggle.syncState();
-MainLocationCode();
+        fusedLocationProviderClient= LocationServices.getFusedLocationProviderClient(this);
+        fetchLocation();
+//MainLocationCode();
+        firebaseAuth = FirebaseAuth.getInstance();
 
-
+UpdateToken();
 
 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         replaceFragment(new MechanicHomeFragment());
@@ -130,9 +142,23 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
             case R.id.nav_logout:
 
                 drawerLayout.closeDrawer(GravityCompat.START);
-                FirebaseAuth.getInstance().signOut();
-                Intent intent1 =new Intent(getApplicationContext(),Mechanic_login.class);
-                startActivity(intent1);
+
+                // check online status
+                myuid= FirebaseAuth.getInstance().getCurrentUser().getUid();
+                DatabaseReference dbref = FirebaseDatabase.getInstance().getReference("Technicians").child(myuid);
+                HashMap<String, Object> hashMap = new HashMap<>();
+                String statuss="";
+                hashMap.put("onlineStatus", statuss);
+                dbref.updateChildren(hashMap).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        FirebaseAuth.getInstance().signOut();
+                        Intent intent1 =new Intent(getApplicationContext(),Mechanic_login.class);
+                        startActivity(intent1);
+                    }
+                });
+
+
                 break;
         }
         return true;
@@ -154,6 +180,24 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
 
 
 
+    }
+
+    private void UpdateToken() {
+        String UserId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (task.isSuccessful()) {
+                            refreshToken = task.getResult();
+                            if (UserId != null) {
+                                FirebaseDatabase.getInstance().getReference("Tokens").child(UserId).child("token").setValue(refreshToken);
+                            } else {
+                                Log.e(TAG, "onComplete: User id is null");
+                            }
+                        }
+                    }
+                });
     }
     ///location
     private  void  MainLocationCode(){
@@ -328,9 +372,70 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
         return (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1);
     }
 
+    private  void fetchLocation() {
+        checkLocationPermission();
+        if(!locationEnabled()){
+            new AlertDialog.Builder(this)
+                    .setTitle("Location Needed")
+                    .setMessage("Please Turn on Location Services on the application")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(intent);
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // User declined for Background Location Permission.
+                            dialog.dismiss();
+                        }
+                    })
+                    .create().show();
+        }else{
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if(location != null){
+                        currentLatitude=location.getLatitude();
+                        currentLongitude=location.getLongitude();
+                        if(currentLatitude!=0&& currentLongitude!=0){
+                            updateLocationToFirebase();
+                            updateLocationToFirestore();
+                        }else{
+                            Log.d(TAG, "onSuccess: Location object Null");
+                        }
+                    }else{
+                        Toast.makeText(getApplicationContext(),"Something Wrong Happened.Try Again Later",Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+            });
+        }
+    }
+
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+        } else {
+            // Fine Location Permission is not granted so ask for permission
+//            askForLocationPermission();
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_CODE);
+        }
+    }
+
+    private boolean locationEnabled() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        checkOnlineStatus("");
         if (locationTrack !=null){
             locationTrack.stopListener();
         }
@@ -387,5 +492,56 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
                 .setNegativeButton("Cancel", null)
                 .create()
                 .show();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        checkOnlineStatus(timestamp);
+        checkTypingStatus("noOne");
+    }
+
+    @Override
+    protected void onResume() {
+        checkOnlineStatus("online");
+        super.onResume();
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return super.onSupportNavigateUp();
+    }
+
+    private void checkOnlineStatus(String status) {
+        // check online status
+        myuid= FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference dbref = FirebaseDatabase.getInstance().getReference("Technicians").child(myuid);
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("onlineStatus", status);
+        dbref.updateChildren(hashMap);
+    }
+    private void checkUserStatus() {
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        if (user != null) {
+            myuid = user.getUid();
+        }
+
+    }
+
+    private void checkTypingStatus(String typing) {
+        myuid= FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference dbref = FirebaseDatabase.getInstance().getReference("Technicians").child(myuid);
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("typingTo", typing);
+        dbref.updateChildren(hashMap);
+    }
+
+    @Override
+    protected void onStart() {
+        checkUserStatus();
+        checkOnlineStatus("online");
+        super.onStart();
     }
 }

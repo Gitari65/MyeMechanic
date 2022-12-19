@@ -139,35 +139,32 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                         userToy.put("carProblemDescription", carProblemDescription);
 
 
-                        FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").push().setValue(userToy).
-                                addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if(task.isSuccessful()){
-                                            FancyToast.makeText(getApplicationContext(), "Upload made successfully", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
-
-                                            Intent intent1 = new Intent(getApplicationContext(), DriverViewMechanics.class);
-                                            intent1.putExtra("carPart", carPart);
-                                            intent1.putExtra("driverId", user_id);
-                                             intent1.putExtra("carProblemDescription",carProblemDescription);
-                                            //intent.putExtra("carModel", "Suzuki");
-                                            startActivity(intent1);
-                                        }
-
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-
-                                    }
-                                });
-
-
+//                        FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").push().setValue(userToy).
+//                                addOnCompleteListener(new OnCompleteListener<Void>() {
+//                                    @Override
+//                                    public void onComplete(@NonNull Task<Void> task) {
+//                                        if(task.isSuccessful()){
+//                                            FancyToast.makeText(getApplicationContext(), "Upload made successfully", FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+//
+//                                            Intent intent1 = new Intent(getApplicationContext(), MapsActivity.class);
+//                                            intent1.putExtra("carPart", carPart);
+//                                            intent1.putExtra("driverId", user_id);
+//                                             intent1.putExtra("carProblemDescription",carProblemDescription);
+//                                            //intent.putExtra("carModel", "Suzuki");
+//                                            startActivity(intent1);
+//                                        }
+//
+//                                    }
+//                                }).addOnFailureListener(new OnFailureListener() {
+//                                    @Override
+//                                    public void onFailure(@NonNull Exception e) {
+//
+//                                    }
+//                                });
 
 
 
-
-                    }
+                  }
                 });
 
 
@@ -192,7 +189,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
         spin1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                final String carModel = spin1.getSelectedItem().toString();
+                 carModel = spin1.getSelectedItem().toString();
                 Log.d(TAG, "onCreate: carModel" + carModel);
                 button.setOnClickListener(new View.OnClickListener() {
                     @Override

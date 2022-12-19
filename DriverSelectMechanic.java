@@ -3,14 +3,6 @@ package com.example.myemechanic;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.content.ContentValues.TAG;
-import static android.graphics.Color.blue;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.TargetApi;
@@ -31,7 +23,8 @@ import android.location.LocationRequest;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Layout;
+import android.provider.Settings;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -45,10 +38,20 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.myemechanic.Notifications.Data;
+import com.example.myemechanic.Notifications.NotificationResponse;
+import com.example.myemechanic.Notifications.NotificationSender;
+import com.example.myemechanic.Services.RestClient;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -71,20 +74,26 @@ import com.shashank.sony.fancytoastlib.FancyToast;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.text.BreakIterator;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class DriverSelectMechanic extends AppCompatActivity  {
-    EditText editTextf, editTexts, editTexte, editTextl,editTextp;
+    EditText editTextf, editTexts, editTexte, editTextl,editTextp,editText2;
     ImageView imageViewp, imageViewl;
     LinearLayout layout,layoutPop,layoutDetails;
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS =0 ;
+    String UserToken;
 
     protected LocationManager locationManager;
     protected LocationListener locationListener;
@@ -131,14 +140,15 @@ public class DriverSelectMechanic extends AppCompatActivity  {
 
     private final static int ALL_PERMISSIONS_RESULT = 101;
     LocationTrack locationTrack;
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private final int LOCATION_PERMISSION_CODE=123;
 
-
-    Button buttonCall, buttonReviews,buttonBack,buttonToggle,buttonMessage,buttonMessagePop,buttonFindOtherMechs,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
+    Button buttonCall, buttonReviews,buttonBack,buttonToggle,buttonMessage,buttonMessagePop,buttonFindOtherMechs,buttonNotifyPop,buttonLocationPop,buttonLocation,buttonrequest,btnrequestPop,btnCancelPop,buttoncancel;
     DocumentSnapshot documentSnapshot;
     TextView textView,txtInfoUpdate,textViewPayment;
     ImageView imageView;
     String childKey;
-    String  mechanicPhoneNumber,  mechanicEmail,firstName, secondName,garageLocation;
+    String  mechanicPhoneNumber,phoneNo,message,  mechanicEmail,firstName, secondName,garageLocation;
 
 
 
@@ -204,6 +214,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 }
             }
         });
+        fusedLocationProviderClient= LocationServices.getFusedLocationProviderClient(this);
 
         //view reviews
         buttonReviews.setOnClickListener(new View.OnClickListener() {
@@ -284,12 +295,13 @@ buttonReviews=findViewById(R.id.btn_viewratings);
             public void onClick(View v) {
                 if (i==0){
                     i++;
-                    MainLocationCode();
+                    fetchLocation();
                     MatchedMechanicId();
                     RequestingMechanic();
                    // mPopupWindow.showAtLocation(mRelativeLayout, Gravity.CENTER,0,0);
 
                     //FIREBASE REALTIME
+
 
 
 
@@ -337,6 +349,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
            callPhoneNumber();
        }
    });
+
 
         Log.d(TAG, "onCreate: garage name"+garagename);
 
@@ -426,6 +439,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                                 firstName=documentSnapshot.getString("firstName");
                                 secondName=documentSnapshot.getString("secondName");
                                 mechanicEmail=documentSnapshot.getString("mechanicEmail");
+                                mechanicPhoneNumber=documentSnapshot.getString("phoneNumber");
                                 if(documentSnapshot.getString("mechanicCurrentLongitude")!=null){
                                     mechanicCurrentLongitude=Double.parseDouble((documentSnapshot.getString("mechanicCurrentLongitude")));
                                     mechanicCurrentLatitude=Double.parseDouble((documentSnapshot.getString("mechanicCurrentLatitude")));
@@ -568,6 +582,22 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                         @Override
                         public void onSuccess(Void unused) {
                             //String status="rejected";
+                            //send Notification
+                            FirebaseDatabase.getInstance().getReference("Tokens").child(current_userId).child("token").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                     UserToken=snapshot.getValue(String.class);
+                                     CheckingOnlineStatus();
+
+//                                    SendNotification(UserToken,"New Request","You Have a new Driver  Request","Request");
+
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Log.d(TAG, "onCancelled: "+error.getMessage());
+                                }
+                            });
 
                             Toast.makeText(getApplicationContext(), " requesting... ",Toast.LENGTH_SHORT).show();
                             Toast.makeText(getApplicationContext(), " waiting for mechanic... ",Toast.LENGTH_SHORT).show();
@@ -596,6 +626,32 @@ buttonReviews=findViewById(R.id.btn_viewratings);
 
     }
 
+    private void SendNotification(String userToken, String title, String message, String request) {
+        Data data=new Data(title,message,request);
+        NotificationSender sender=new NotificationSender(data,userToken);
+        Retrofit.Builder builder = new Retrofit.Builder()
+                .baseUrl("https://fcm.googleapis.com/")
+                .addConverterFactory(GsonConverterFactory.create());
+
+        Retrofit retrofit = builder.build();
+        RestClient client = retrofit.create(RestClient.class);
+        Call<NotificationResponse> call=client.sendNotification(sender);
+
+        call.enqueue(new Callback<NotificationResponse>() {
+            @Override
+            public void onResponse(Call<NotificationResponse> call, Response<NotificationResponse> response) {
+                if(response.body().success!=1){
+                    Toast.makeText(getApplicationContext(), "Mechanic Not notified", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<NotificationResponse> call, Throwable t) {
+                Log.d(TAG, "onFailure: "+t.getMessage());
+            }
+        });
+    }
+
     public void RequestPopUpWindow(){
 
         // Get the application context
@@ -607,6 +663,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         // Get the widgets reference from XML layout
         mRelativeLayout =  findViewById(R.id.rl);
         mButton = (Button) findViewById(R.id.btnsendRequest);
+        editText2= (EditText) findViewById(R.id.verymechanic_phonenumberD);
 
 
         // Set a click listener for the text view
@@ -651,6 +708,8 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         layoutPop=customView.findViewById(R.id.layoutDetailsPop);
         buttonLocationPop=customView.findViewById(R.id.btnfindMechLocationPop);
 
+                buttonNotifyPop=customView.findViewById(R.id.buttonNotifyrequestPop);
+
         txtInfoUpdate=customView.findViewById(R.id.textViewUpdatePop);
         buttonMessagePop=customView.findViewById(R.id.btnchatMechPop);
         buttonFindOtherMechs=customView.findViewById(R.id.buttonFindOtherMechPop);
@@ -666,6 +725,14 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 Intent intent = new Intent(getApplicationContext(), FloatingChatActivity.class);
                 intent.putExtra("uid", current_userId);
                 startActivity(intent);
+            }
+        });
+        buttonNotifyPop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                phoneNo=editText2.getText().toString().trim();
+
+                sendSMSMessage();
             }
         });
         buttonFindOtherMechs.setOnClickListener(new View.OnClickListener() {
@@ -816,6 +883,75 @@ buttonReviews=findViewById(R.id.btn_viewratings);
 
 
     }
+    public void CheckingOnlineStatus(){
+        String current_userId = getIntent().getStringExtra("currentuserid");
+
+
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference additionalUserInfoRef = rootRef.child("Technicians");
+        Query userQuery1 = additionalUserInfoRef.orderByChild("userid").equalTo(current_userId);
+
+        ValueEventListener valueEventListener1 = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+
+                    ds.getRef().addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            String status= (String) snapshot.child("onlineStatus").getValue();
+                            phoneNo=(String) snapshot.child("mobilee").getValue();
+                            message = "Im trying to request you but you are offline .E-mechanic";
+                            Log.d(TAG, "onDataChange: mobile"+phoneNo);
+                            if (Objects.equals(status, "online")){
+                                SendNotification(UserToken,"New Request","You Have a new Driver  Request","Request");
+
+
+                            }
+                            else{
+                                if(phoneNo!=null){
+                                    Log.d(TAG, "onDataChange: else mobile"+phoneNo);
+
+                                    buttonNotifyPop.setVisibility(View.VISIBLE);
+                                }
+
+                            }
+
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+            }
+        };
+        userQuery1.addValueEventListener(valueEventListener1);
+
+    }
+    protected void sendSMSMessage() {
+
+        message = "Im trying to request you but you are offline .E-mechanic";
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(DriverSelectMechanic.this,
+                    Manifest.permission.SEND_SMS)) {
+            } else {
+                ActivityCompat.requestPermissions(DriverSelectMechanic.this,
+                        new String[]{Manifest.permission.SEND_SMS},
+                        MY_PERMISSIONS_REQUEST_SEND_SMS);
+            }
+        }
+    }
+
 
 
     public  void mainLocationUpdate(){
@@ -950,6 +1086,66 @@ buttonReviews=findViewById(R.id.btn_viewratings);
             ex.printStackTrace();
         }
     }
+    private  void fetchLocation() {
+        checkLocationPermission();
+        if(!locationEnabled()){
+            new AlertDialog.Builder(this)
+                    .setTitle("Location Needed")
+                    .setMessage("Please Turn on Location Services on the application")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(intent);
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // User declined for Background Location Permission.
+                            dialog.dismiss();
+                        }
+                    })
+                    .create().show();
+        }else{
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if(location != null){
+                        driverCurrentLatitude =location.getLatitude();
+                        driverCurrentLongitude=location.getLongitude();
+                        if(driverCurrentLatitude!=0&& driverCurrentLongitude!=0){
+                           // updateLocationToFirebase();
+                            updateLocationToFirestore();
+
+                        }else{
+                            Log.d(TAG, "onSuccess: Location object Null");
+                        }
+                    }else{
+                        Toast.makeText(getApplicationContext(),"Something Wrong Happened.Try Again Later",Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+            });
+        }
+    }
+
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(DriverSelectMechanic.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+        } else {
+            // Fine Location Permission is not granted so ask for permission
+//            askForLocationPermission();
+            ActivityCompat.requestPermissions(DriverSelectMechanic.this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_CODE);
+        }
+    }
+
+    private boolean locationEnabled() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
     ///location
     private  void  MainLocationCode(){
         permissions.add(ACCESS_FINE_LOCATION);
@@ -1052,6 +1248,25 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 }
 
                 break;
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    CheckingOnlineStatus();
+
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(phoneNo, null, message, null, null);
+                    Toast.makeText(getApplicationContext(), "SMS sent.",
+                            Toast.LENGTH_LONG).show();
+                    buttonNotifyPop.setVisibility(View.GONE);
+
+                } else {
+                    Toast.makeText(getApplicationContext(),
+                            "SMS failed, please try again.", Toast.LENGTH_LONG).show();
+                  return;
+                }
+            }
+            break;
+
         }
 
     }

@@ -17,7 +17,7 @@ import com.androidstudy.daraja.Daraja;
 import com.androidstudy.daraja.DarajaListener;
 import com.androidstudy.daraja.model.AccessToken;
 import com.example.myemechanic.Model.StkPushResponse;
-import com.example.myemechanic.Services.STKPushService;
+import com.example.myemechanic.Services.RestClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -49,7 +49,7 @@ public class MpesaPaymentActivity extends AppCompatActivity {
     String AMOUNT;
     DocumentSnapshot documentSnapshot;
     String driverSecondName,driverFirstName,driverEmail,driverPhoneNumber;
-    String Problem,date,carModel,Payment,Amount;
+    String Problem,date,carModel,Payment,Amount,RequestID;
     TextView textViewProblem,textViewPayment,textViewTime,textViewCarModel;
 
 private ProgressDialog progressDialog;
@@ -101,74 +101,46 @@ private ProgressDialog progressDialog;
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
         String timestamp=String.valueOf(System.currentTimeMillis());
+        if(RequestID!=null){
+            Retrofit.Builder builder=new Retrofit.Builder()
+                    .baseUrl("https://1c9f-2c0f-fe38-2326-5a90-fc0f-7b46-f802-d890.in.ngrok.io/")
+                    .addConverterFactory(GsonConverterFactory.create());
 
-        Retrofit.Builder builder=new Retrofit.Builder()
-                .baseUrl("https://17bd-105-160-63-85.in.ngrok.io/")
-                .addConverterFactory(GsonConverterFactory.create());
-
-        Retrofit retrofit=builder.build();
-        STKPushService restClient=retrofit.create(STKPushService.class);
-        Call<StkPushResponse> call=restClient.pushSTK(
-                1,
-                Utils.sanitizePhoneNumber(mobile)
+            Retrofit retrofit=builder.build();
+            RestClient restClient=retrofit.create(RestClient.class);
+            Call<StkPushResponse> call=restClient.pushSTK(
+                    1,
+                    Utils.sanitizePhoneNumber(mobile),
+                    RequestID
 //                timestamp
 //                visitID
-        );
-        call.enqueue(new Callback<StkPushResponse>() {
-            @Override
-            public void onResponse(@NonNull Call<StkPushResponse> call, @NonNull Response<StkPushResponse> response) {
-                assert response.body() != null;
-                if(response.body().getResponseCode().equals("0")){
-                    progressDialog.dismiss();
-                    Toast.makeText(getApplicationContext(),"Payment Prompted",Toast.LENGTH_SHORT).show();
-                    Timber.tag(TAG).i("Mpesa Worked: ");
-//                    mRef.child(visitID).setValue(request).addOnCompleteListener(new OnCompleteListener<Void>() {
-//                        @Override
-//                        public void onComplete(@NonNull Task<Void> task) {
-//                            if(task.isSuccessful()){
-//                                FirebaseDatabase.getInstance().getReference("Tokens").child(vetid).child("token").addListenerForSingleValueEvent(new ValueEventListener() {
-//                                    @Override
-//                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                                        String VetToken=snapshot.getValue(String.class);
-//                                        SendNotification(VetToken,"New Request","You Have a new Visit Request","Request");
-//                                    }
-//
-//                                    @Override
-//                                    public void onCancelled(@NonNull DatabaseError error) {
-//
-//                                    }
-//                                });
-//                                paymentDailog.dismiss();
-//                                if(serviceType.equals("Disease Treatment")){
-//                                    Intent intent=new Intent(RequestVisitation.this,Diagnose.class);
-//                                    Bundle bundle=new Bundle();
-//                                    bundle.putString("VISITID",visitID);
-//                                    intent.putExtras(bundle);
-//                                    startActivity(intent);
-//                                    finish();
-//                                }else{
-//                                    finish();
-//                                }
-//
-//                            }
-//                        }
-//                    });
-                }else{
+            );
+            call.enqueue(new Callback<StkPushResponse>() {
+                @Override
+                public void onResponse(@NonNull Call<StkPushResponse> call, @NonNull Response<StkPushResponse> response) {
+                    assert response.body() != null;
+                    if(response.body().getResponseCode().equals("0")){
+                        progressDialog.dismiss();
+                        Toast.makeText(getApplicationContext(),"Payment Prompted",Toast.LENGTH_SHORT).show();
+                        Timber.tag(TAG).i("Mpesa Worked: ");
+                    }else{
+                        progressDialog.dismiss();
+                        Toast.makeText(getApplicationContext(),"Something Wrong Happened Please Try Again",Toast.LENGTH_SHORT).show();
+                        Timber.tag(TAG).i("Mpesa Failed: ");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<StkPushResponse> call, Throwable t) {
                     progressDialog.dismiss();
                     Toast.makeText(getApplicationContext(),"Something Wrong Happened Please Try Again",Toast.LENGTH_SHORT).show();
-                    Timber.tag(TAG).i("Mpesa Failed: ");
-//                    paymentDailog.dismiss();
+                    Timber.tag(TAG).d("onFailure: Something wrong Happened");
                 }
-            }
+            });
+        }else{
+            Toast.makeText(getApplicationContext(),"Something Wrong Happened Please Try Again",Toast.LENGTH_SHORT).show();
+        }
 
-            @Override
-            public void onFailure(Call<StkPushResponse> call, Throwable t) {
-                progressDialog.dismiss();
-                Toast.makeText(getApplicationContext(),"Something Wrong Happened Please Try Again",Toast.LENGTH_SHORT).show();
-                Timber.tag(TAG).d("onFailure: Something wrong Happened");
-//                paymentDailog.dismiss();
-            }
-        });
 
 //        LNMExpress lnmExpress = new LNMExpress(
 //                "174379",
@@ -244,6 +216,7 @@ private ProgressDialog progressDialog;
                     ds.getRef().addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            RequestID=snapshot.getKey();
                             Problem= (String) snapshot.child("workProblem").getValue();
                             Amount= (String) snapshot.child("workPrice").getValue();
                             carModel= (String) snapshot.child("carModel").getValue();

@@ -8,26 +8,37 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -36,6 +47,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,7 +68,10 @@ public class DriversHomeActivity extends AppCompatActivity {
     String driversLocation;
     RecyclerView recyclerView;
     AdapterTechnicians myRAdapter;
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private final int LOCATION_PERMISSION_CODE=123;
     ArrayList<Technician> techniciansArrayList;
+    String refreshToken;
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -76,13 +91,15 @@ public class DriversHomeActivity extends AppCompatActivity {
         actionBarDrawerToggle= new ActionBarDrawerToggle(this,drawerLayout,R.string.menu_open,R.string.closed_menu);
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
-        MainLocationCode();
+//        MainLocationCode();
+        fusedLocationProviderClient= LocationServices.getFusedLocationProviderClient(this);
+        fetchLocation();
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         replaceFragment(new DriversHomeFragment());
 
-
+        UpdateToken();
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -128,6 +145,84 @@ public class DriversHomeActivity extends AppCompatActivity {
 
 
     }
+
+    private void UpdateToken() {
+        String UserId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (task.isSuccessful()) {
+                            refreshToken = task.getResult();
+                            if (UserId != null) {
+                                FirebaseDatabase.getInstance().getReference("Tokens").child(UserId).child("token").setValue(refreshToken);
+                            } else {
+                                Log.e(TAG, "onComplete: User id is null");
+                            }
+                        }
+                    }
+                });
+    }
+    private  void fetchLocation() {
+        checkLocationPermission();
+        if(!locationEnabled()){
+            new AlertDialog.Builder(this)
+                    .setTitle("Location Needed")
+                    .setMessage("Please Turn on Location Services on the application")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(intent);
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // User declined for Background Location Permission.
+                            dialog.dismiss();
+                        }
+                    })
+                    .create().show();
+        }else{
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if(location != null){
+                        currentLatitude=location.getLatitude();
+                        currentLongitude=location.getLongitude();
+                        if(currentLatitude!=0&& currentLongitude!=0){
+                            updateLocationToFirebase();
+
+                        }else{
+                            Log.d(TAG, "onSuccess: Location object Null");
+                        }
+                    }else{
+                        Toast.makeText(getApplicationContext(),"Something Wrong Happened.Try Again Later",Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+            });
+        }
+    }
+
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(DriversHomeActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+        } else {
+            // Fine Location Permission is not granted so ask for permission
+//            askForLocationPermission();
+            ActivityCompat.requestPermissions(DriversHomeActivity.this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_CODE);
+        }
+    }
+
+    private boolean locationEnabled() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
     public void replaceFragment(Fragment fragment){
 
         androidx.fragment.app.FragmentManager fragmentManager=getSupportFragmentManager();
@@ -170,7 +265,7 @@ public class DriversHomeActivity extends AppCompatActivity {
             Log.d(TAG, "onComplete: current latitude"+currentLatitude);
 
 
-            updateLocationToFirebase();
+
 
             //Toast.makeText(getApplicationContext(), "Longitude:" + Double.toString(longitude) + "\nLatitude:" + Double.toString(latitude), Toast.LENGTH_SHORT).show();
         } else {

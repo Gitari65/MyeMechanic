@@ -7,17 +7,24 @@ import static android.content.ContentValues.TAG;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -28,6 +35,8 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -57,6 +66,8 @@ public class MapsActivity extends AppCompatActivity  implements OnMapReadyCallba
     private ArrayList permissionsRejected = new ArrayList();
     private ArrayList permissions = new ArrayList();
     private final static int ALL_PERMISSIONS_RESULT = 101;
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private final int LOCATION_PERMISSION_CODE=123;
     LocationTrack locationTrack;
     Double currentLongitude,currentLatitude;
     TextView textView;
@@ -98,16 +109,16 @@ textView=findViewById(R.id.textviewtoggleMaps);
 
 
 
-        myRAdapter = new AdapterTechnicians(getApplicationContext(),techniciansArrayList, (RecyclerViewInterface) this);
 
         progressDialog=new ProgressDialog(MapsActivity.this);
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Fetching data....");
         //progressDialog.show();
+        fusedLocationProviderClient= LocationServices.getFusedLocationProviderClient(this);
 
+//        MainLocationCode();
+        fetchLocation();
 
-        MainLocationCode();
-        //getNearestMechanic();
 //        binding = ActivityMapsBinding.inflate(getLayoutInflater());
 //        setContentView(binding.getRoot());
         // techniciansArrayList.add(technician);
@@ -134,28 +145,44 @@ textView=findViewById(R.id.textviewtoggleMaps);
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
        // techniciansArrayList=new ArrayList<Technician>();
-getCurrentLocation();
-        LatLng latLng1 = new LatLng(currentLatitude, currentLongitude);
+//getCurrentLocation();
+        fetchLocation();
 
-        marker = mMap.addMarker(new MarkerOptions().position(latLng1).title("You"));
+//        LatLng latLng1 = new LatLng(currentLatitude, currentLongitude);
+//        mCurrLocationMarker = mMap.addMarker(markerOptions);
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng1));
+//        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+//        marker = mMap.addMarker(new MarkerOptions().position(latLng1).title("You")
+//                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
 
 
 //        // Add a marker in Sydney and move the camera
 //        LatLng sydney = new LatLng(-34, 151);
 //        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-        mMap = googleMap;
         googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         DatabaseReference myref=FirebaseDatabase.getInstance().getReference("Technicians");
         myref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+               // techniciansArrayList1.clear();
                 for (DataSnapshot s : dataSnapshot.getChildren()) {
                     Technician  technician = s.getValue(Technician.class);
 
                     techniciansArrayList1.add(technician);
+
                     for (int i = 0; i < techniciansArrayList1.size(); i++) {
                         if (technician.currentLatitude!=null){
+                            //Recycler view nearest mechanics
+//                            techniciansArrayList.add(technician);
+//                            myRAdapter.notifyDataSetChanged();
+//                    recyclerView.setAdapter(myRAdapter);
+//                    if(progressDialog.isShowing()){
+//                        progressDialog.dismiss();
+//                    }
+
+                            //near longitudes
+
                             LatLng latLng = new LatLng(Double.parseDouble(technician.currentLatitude), Double.parseDouble(technician.currentLongitude));
                             if (mMap != null) {
                                 marker = mMap.addMarker(new MarkerOptions().position(latLng).title(technician.firstNamee));
@@ -163,6 +190,13 @@ getCurrentLocation();
                         }
 
                     }
+ //                            techniciansArrayList.add(technician);
+//                    myRAdapter.notifyDataSetChanged();
+//                    recyclerView.setAdapter(myRAdapter);
+//                    if(progressDialog.isShowing()){
+//                        progressDialog.dismiss();
+//                    }
+
                 }
             }
 
@@ -171,6 +205,75 @@ getCurrentLocation();
 
             }
         });
+    }
+    private  void fetchLocation() {
+        checkLocationPermission();
+        if(!locationEnabled()){
+            new AlertDialog.Builder(this)
+                    .setTitle("Location Needed")
+                    .setMessage("Please Turn on Location Services on the application")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivity(intent);
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // User declined for Background Location Permission.
+                            dialog.dismiss();
+                        }
+                    })
+                    .create().show();
+        }else{
+            fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    if(location != null){
+                        currentLatitude =location.getLatitude();
+                        currentLongitude=location.getLongitude();
+                        if(currentLongitude!=0&& currentLatitude!=0){
+                            getNearestMechanic();
+                            // updateLocationToFirebase();
+                            LatLng latLng1 = new LatLng(currentLatitude, currentLongitude);
+//        mCurrLocationMarker = mMap.addMarker(markerOptions);
+                            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng1));
+                            mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                            marker = mMap.addMarker(new MarkerOptions().position(latLng1).title("You")
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                           // getNearestMechanic();
+
+                            updateLocationToFirebase();
+
+                        }else{
+                            Log.d(TAG, "onSuccess: Location object Null");
+                        }
+                    }else{
+                        Toast.makeText(getApplicationContext(),"Something Wrong Happened.Try Again Later",Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+            });
+        }
+    }
+
+    private void checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+        } else {
+            // Fine Location Permission is not granted so ask for permission
+//            askForLocationPermission();
+            ActivityCompat.requestPermissions(MapsActivity.this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_CODE);
+        }
+    }
+
+    private boolean locationEnabled() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
 
     ///location
@@ -396,8 +499,10 @@ getNearestMechanic();
         DatabaseReference myRef =FirebaseDatabase.getInstance().getReference().child("Geofire");
         GeoFire geoFire= new GeoFire(myRef);
 
+
         GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(currentLatitude,currentLongitude), 8587.8 );
 
+        myRAdapter = new AdapterTechnicians(getApplicationContext(),techniciansArrayList, (RecyclerViewInterface) this);
 
         geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
@@ -407,13 +512,20 @@ getNearestMechanic();
                 DatabaseReference locationChild = FirebaseDatabase.getInstance().getReference("Technicians");
                 locationChild.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                            //descriptions.add(request.child("serviceDescription").getValue().toString());
+
+                            Technician technician=dataSnapshot.getValue(Technician.class);
+                            techniciansArrayList.add(technician);
+
                         //  String name = dataSnapshot.child("name").getValue(String.class);
                         // System.out.println(String.format("Electrician name: %s", name));
-                        Technician technician=dataSnapshot.getValue(Technician.class);
-                        techniciansArrayList.add(technician);
+
+
                         myRAdapter.notifyDataSetChanged();
                         recyclerView.setAdapter(myRAdapter);
+//                        techniciansArrayList.clear();
                         if(progressDialog.isShowing()){
                             progressDialog.dismiss();
                         }

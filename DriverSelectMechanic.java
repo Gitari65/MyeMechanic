@@ -8,6 +8,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -349,6 +350,10 @@ buttonReviews=findViewById(R.id.btn_viewratings);
            callPhoneNumber();
        }
    });
+        message = "Im trying to request you but you are offline .E-mechanic";
+        phoneNo=editText2.getText().toString().trim();
+
+
 
 
         Log.d(TAG, "onCreate: garage name"+garagename);
@@ -731,8 +736,10 @@ buttonReviews=findViewById(R.id.btn_viewratings);
             @Override
             public void onClick(View v) {
                 phoneNo=editText2.getText().toString().trim();
-
-                sendSMSMessage();
+sendSMS();
+buttonNotifyPop.setText("notifying sms sent");
+buttonNotifyPop.setEnabled(false);
+//                sendSMSMessage();
             }
         });
         buttonFindOtherMechs.setOnClickListener(new View.OnClickListener() {
@@ -913,6 +920,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                                     Log.d(TAG, "onDataChange: else mobile"+phoneNo);
 
                                     buttonNotifyPop.setVisibility(View.VISIBLE);
+                                    buttonNotifyPop.setText("mechanic  offline sms");
                                 }
 
                             }
@@ -1206,7 +1214,41 @@ buttonReviews=findViewById(R.id.btn_viewratings);
     private boolean canMakeSmores() {
         return (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1);
     }
+    private void sendSMS() {
+        message = "Im trying to request you but you are offline .E-mechanic";
+        phoneNo=editText2.getText().toString().trim();
 
+
+        try
+        {
+            if(Build.VERSION.SDK_INT > 22)
+            {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(DriverSelectMechanic.this, new String[]{Manifest.permission.SEND_SMS}, 101);
+                    return;
+                }
+
+
+                SmsManager sms = SmsManager.getDefault();
+                PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent("SMS_SENT"), 0);
+                PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent("SMS_DELIVERED"), 0);
+                sms.sendTextMessage(phoneNo, null, message, sentIntent, deliveredIntent);
+
+
+            }
+            else {
+                SmsManager sms = SmsManager.getDefault();
+                PendingIntent sentIntent = PendingIntent.getBroadcast(this, 0, new Intent("SMS_SENT"), 0);
+                PendingIntent deliveredIntent = PendingIntent.getBroadcast(this, 0, new Intent("SMS_DELIVERED"), 0);
+                sms.sendTextMessage(phoneNo, null, message, sentIntent, deliveredIntent);
+            }
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        }
+
+    }
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
@@ -1216,6 +1258,8 @@ buttonReviews=findViewById(R.id.btn_viewratings);
         if (requestCode == 101) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 callPhoneNumber();
+                sendSMS();
+
             }
         }
         switch (requestCode) {

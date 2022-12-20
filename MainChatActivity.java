@@ -183,7 +183,7 @@ public class MainChatActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         String timestamp = String.valueOf(System.currentTimeMillis());
-        checkOnlineStatus(timestamp);
+        //checkOnlineStatus(timestamp);
         checkTypingStatus("noOne");
     }
 

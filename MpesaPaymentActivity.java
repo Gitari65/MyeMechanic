@@ -103,7 +103,7 @@ private ProgressDialog progressDialog;
         String timestamp=String.valueOf(System.currentTimeMillis());
         if(RequestID!=null){
             Retrofit.Builder builder=new Retrofit.Builder()
-                    .baseUrl("http://mpesa-requestbin.herokuapp.com/1od2was1/")
+                    .baseUrl("https://1edc-105-161-87-76.in.ngrok.io/")
                     .addConverterFactory(GsonConverterFactory.create());
 
             Retrofit retrofit=builder.build();

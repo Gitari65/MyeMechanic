@@ -6,10 +6,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.Font;
 import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -109,14 +113,13 @@ CreatePDF();
 
 // Get a reference to the database
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference ref = database.getReference("Technicians").child(current_userId);
+        DatabaseReference ref = database.getReference().child("DriverRequest").child("MechanicWork");
 
 // Retrieve data from the database
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                String name = snapshot.child("emaill").getValue(String.class);
-                String address = snapshot.child("firstNamee").getValue(String.class);
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
 
                 // Create a new PDF document
                 Document doc = new Document();
@@ -138,9 +141,45 @@ CreatePDF();
                     // Create a new PdfWriter for the file
                     PdfWriter.getInstance(doc, new FileOutputStream(file));
                     doc.open();
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        String date = child.child("date").getValue(String.class);
+                        String problem = child.child("workProblem").getValue(String.class);
+
+                        String name = child.child("carModel").getValue(String.class);
+                        String address = child.child("carPart").getValue(String.class);
+
+                        // Create a new font for the name
+                        Font nameFont = new Font();
+                        nameFont.setSize(12);
+                        nameFont.setStyle(Font.BOLD);
+if (name!=null){
+    // Create a new chunk with the name
+    Chunk nameChunk = new Chunk(name, nameFont);
+
+// Create a new chunk with the address
+    Chunk addressChunk = new Chunk(address);
+
+// Create a new phrase and add the chunks to it
+    Phrase dataPhrase = new Phrase();
+    dataPhrase.add(nameChunk);
+    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add(addressChunk);
+
+// Create a new paragraph and add the phrase to it
+    Paragraph dataParagraph = new Paragraph();
+    dataParagraph.add(dataPhrase);
+
+// Add the paragraph to the PDF
+    doc.add(dataParagraph);
+
+
+}
+
+
+
+
+                    }
                     // Add data to the PDF
-                    doc.add(new Paragraph(name));
-                    doc.add(new Paragraph(address));
 
                     doc.close();
 

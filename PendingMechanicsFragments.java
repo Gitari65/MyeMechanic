@@ -100,7 +100,7 @@ View view=inflater.inflate(R.layout.fragment_pending_mechanics_fragments, contai
         mechanicsArrayList=new ArrayList<mechanic_details>();
         myAdapter = new MyAdapter(getContext(),mechanicsArrayList,this);
 
-         progressDialog=new ProgressDialog(getContext());
+        progressDialog=new ProgressDialog(getContext());
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Fetching data....");
         progressDialog.show();

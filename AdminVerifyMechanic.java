@@ -180,15 +180,16 @@ CreatePDF();
                         // Create a new phrase and add the chunks to it
                         Phrase dataPhrase = new Phrase();
 
-                        String date = child.child("date").getValue(String.class);
-                        String problem = child.child("workProblem").getValue(String.class);
-                        String price = child.child("workPrice").getValue(String.class);
-                        String phone = child.child("driverPhoneNumber").getValue(String.class);
-                        String paymentMethod = child.child("paymentMethod").getValue(String.class);
-                        String paymentStatus = child.child("paymentStatus").getValue(String.class);
-                        String name = child.child("name").getValue(String.class, "N/A");
-                        String name = child.child("carModel").getValue(String.class);
-                        String address = child.child("carPart").getValue(String.class);
+                        String date = snapshot.child("date").exists() ? snapshot.child("date").getValue(String.class) : "N/A";
+                        String problem = snapshot.child("workProblem").exists() ? snapshot.child("workProblem").getValue(String.class) : "N/A";
+                        String price = snapshot.child("workPrice").exists() ? snapshot.child("workPrice").getValue(String.class) : "N/A";
+                        String phone = snapshot.child("driverPhoneNumber").exists() ? snapshot.child("driverPhoneNumber").getValue(String.class) : "N/A";
+                        String paymentMethod = snapshot.child("paymentMethod").exists() ? snapshot.child("paymentMethod").getValue(String.class) : "N/A";
+                        String paymentStatus = snapshot.child("paymentStatus").exists() ? snapshot.child("paymentStatus").getValue(String.class) : "N/A";
+                        String address = snapshot.child("carPart").exists() ? snapshot.child("carPart").getValue(String.class) : "N/A";
+
+                        String name = snapshot.child("carModel").exists() ? snapshot.child("name").getValue(String.class) : "N/A";
+//                        String name = child.child("carModel").getValue(String.class);
 
 
 

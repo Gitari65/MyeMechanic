@@ -139,31 +139,92 @@ CreatePDF();
                     }
                     // Create a new PdfWriter for the file
                     // Create a new PdfWriter for the file
+
+                    // Create a new font for the name
+                    Font nameFont = new Font();
+                    nameFont.setSize(12);
+                    nameFont.setStyle(Font.BOLD);
                     PdfWriter.getInstance(doc, new FileOutputStream(file));
                     doc.open();
+                    Chunk dateChunk1 = new Chunk("DATE", nameFont);
+                    Chunk modelChunk1 = new Chunk("MODEL", nameFont);
+                    Chunk partChunk1 = new Chunk("CAR PART", nameFont);
+                    Chunk problemChunk1 = new Chunk("PROBLEM", nameFont);
+                    Chunk priceChunk1 = new Chunk("PRICE", nameFont);
+                    Chunk phoneChunk1 = new Chunk("DRIVER PHONE.NO", nameFont);
+                    Chunk methodChunk1 = new Chunk("PAYMENT MODE", nameFont);
+                    Chunk statusChunk1 = new Chunk("PAYMENT STATUS", nameFont);
+
+                    Phrase dataPhrase1 = new Phrase();
+                    dataPhrase1.add(dateChunk1);
+                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add(modelChunk1);
+                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add(partChunk1);
+                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add(problemChunk1);
+                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add(priceChunk1);
+                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add(phoneChunk1);
+                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add(methodChunk1);
+                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add(statusChunk1);
+                    // Create a new paragraph and add the phrase to it
+                    Paragraph dataParagraph1 = new Paragraph();
+                    dataParagraph1.add(dataPhrase1);
+                    doc.add(dataParagraph1);
+
                     for (DataSnapshot child : snapshot.getChildren()) {
+                        // Create a new phrase and add the chunks to it
+                        Phrase dataPhrase = new Phrase();
+
                         String date = child.child("date").getValue(String.class);
                         String problem = child.child("workProblem").getValue(String.class);
-
+                        String price = child.child("workPrice").getValue(String.class);
+                        String phone = child.child("driverPhoneNumber").getValue(String.class);
+                        String paymentMethod = child.child("paymentMethod").getValue(String.class);
+                        String paymentStatus = child.child("paymentStatus").getValue(String.class);
+                        String name = child.child("name").getValue(String.class, "N/A");
                         String name = child.child("carModel").getValue(String.class);
                         String address = child.child("carPart").getValue(String.class);
 
-                        // Create a new font for the name
-                        Font nameFont = new Font();
-                        nameFont.setSize(12);
-                        nameFont.setStyle(Font.BOLD);
-if (name!=null){
-    // Create a new chunk with the name
-    Chunk nameChunk = new Chunk(name, nameFont);
 
+
+
+
+    // Create a new chunk with the name
+    Chunk nameChunk = new Chunk(name);
+    Chunk dateChunk = new Chunk(date);
+
+    Chunk problemChunk = new Chunk(problem);
+
+    Chunk priceChunk = new Chunk(price);
+    Chunk phoneChunk = new Chunk(phone);
+    Chunk methodChunk = new Chunk(paymentMethod);
+    Chunk statusChunk = new Chunk(paymentStatus);
 // Create a new chunk with the address
     Chunk addressChunk = new Chunk(address);
 
 // Create a new phrase and add the chunks to it
-    Phrase dataPhrase = new Phrase();
+//    Phrase dataPhrase = new Phrase();
+
+    dataPhrase.add(dateChunk);
+    dataPhrase.add("  ");  // Add some space between the name and address
     dataPhrase.add(nameChunk);
     dataPhrase.add("  ");  // Add some space between the name and address
     dataPhrase.add(addressChunk);
+    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add(problemChunk);
+    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add(priceChunk);
+    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add(phoneChunk);
+    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add(methodChunk);
+    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add(statusChunk);
 
 // Create a new paragraph and add the phrase to it
     Paragraph dataParagraph = new Paragraph();
@@ -173,7 +234,7 @@ if (name!=null){
     doc.add(dataParagraph);
 
 
-}
+
 
 
 

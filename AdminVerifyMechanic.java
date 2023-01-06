@@ -9,8 +9,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.PdfWriter;
 
 import androidx.annotation.NonNull;
@@ -46,8 +48,7 @@ Button button2;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_verify_mechanic);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.hide();
+
         String firstName=getIntent().getStringExtra("fName");
         String secondName=getIntent().getStringExtra("sName");
         String mechanicEmail=getIntent().getStringExtra("email");
@@ -122,13 +123,16 @@ CreatePDF();
 
 
                 // Create a new PDF document
-                Document doc = new Document();
+                Document doc = new Document(new Rectangle(PageSize.A4.getWidth() + 100, PageSize.A4.getHeight()));
                 try {
 
                     // Create a file in the internal storage directory
                     File file=new File(getExternalFilesDir("/"),"/output.pdf");
+
                     try {
                         PdfWriter.getInstance(doc, new FileOutputStream(file));
+                        doc.open();
+
                         Toast.makeText(getApplicationContext(), " Downloading... ",Toast.LENGTH_SHORT).show();
                         Toast.makeText(getApplicationContext(), " Downloaded",Toast.LENGTH_SHORT).show();
 
@@ -137,23 +141,34 @@ CreatePDF();
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
+
                     // Create a new PdfWriter for the file
                     // Create a new PdfWriter for the file
 
+                    Font nameFont3 = new Font();
+                    nameFont3.setSize(19);
+                    nameFont3.setStyle(Font.BOLD);
+                    Phrase dataPhrase3 = new Phrase();
+                    Paragraph dataParagraph3 = new Paragraph();
+                    Chunk titleChunk3 = new Chunk("My-Mechanic Service Reports", nameFont3);
+                    dataPhrase3.add(titleChunk3);
+                    dataParagraph3.add(dataPhrase3);
+
+// Add the paragraph to the PDF
+                    doc.add(dataParagraph3);
                     // Create a new font for the name
                     Font nameFont = new Font();
                     nameFont.setSize(12);
                     nameFont.setStyle(Font.BOLD);
-                    PdfWriter.getInstance(doc, new FileOutputStream(file));
-                    doc.open();
+
                     Chunk dateChunk1 = new Chunk("DATE", nameFont);
                     Chunk modelChunk1 = new Chunk("MODEL", nameFont);
-                    Chunk partChunk1 = new Chunk("CAR PART", nameFont);
+                    Chunk partChunk1 = new Chunk("CARPART", nameFont);
                     Chunk problemChunk1 = new Chunk("PROBLEM", nameFont);
                     Chunk priceChunk1 = new Chunk("PRICE", nameFont);
-                    Chunk phoneChunk1 = new Chunk("DRIVER PHONE.NO", nameFont);
-                    Chunk methodChunk1 = new Chunk("PAYMENT MODE", nameFont);
-                    Chunk statusChunk1 = new Chunk("PAYMENT STATUS", nameFont);
+                    Chunk phoneChunk1 = new Chunk("DRIVERPHONE.NO", nameFont);
+                    Chunk methodChunk1 = new Chunk("PAYMENTMODE", nameFont);
+                    Chunk statusChunk1 = new Chunk("PAYMENTSTATUS", nameFont);
 
                     Phrase dataPhrase1 = new Phrase();
                     dataPhrase1.add(dateChunk1);
@@ -175,20 +190,21 @@ CreatePDF();
                     Paragraph dataParagraph1 = new Paragraph();
                     dataParagraph1.add(dataPhrase1);
                     doc.add(dataParagraph1);
+                    if (snapshot.hasChildren()) {
 
                     for (DataSnapshot child : snapshot.getChildren()) {
                         // Create a new phrase and add the chunks to it
                         Phrase dataPhrase = new Phrase();
 
-                        String date = snapshot.child("date").exists() ? snapshot.child("date").getValue(String.class) : "N/A";
-                        String problem = snapshot.child("workProblem").exists() ? snapshot.child("workProblem").getValue(String.class) : "N/A";
-                        String price = snapshot.child("workPrice").exists() ? snapshot.child("workPrice").getValue(String.class) : "N/A";
-                        String phone = snapshot.child("driverPhoneNumber").exists() ? snapshot.child("driverPhoneNumber").getValue(String.class) : "N/A";
-                        String paymentMethod = snapshot.child("paymentMethod").exists() ? snapshot.child("paymentMethod").getValue(String.class) : "N/A";
-                        String paymentStatus = snapshot.child("paymentStatus").exists() ? snapshot.child("paymentStatus").getValue(String.class) : "N/A";
-                        String address = snapshot.child("carPart").exists() ? snapshot.child("carPart").getValue(String.class) : "N/A";
+                        String date = child.child("date").exists() ? child.child("date").getValue(String.class) : "N/A";
+                        String problem = child.child("workProblem").exists() ? child.child("workProblem").getValue(String.class) : "N/A";
+                        String price = child.child("workPrice").exists() ? child.child("workPrice").getValue(String.class) : "N/A";
+                        String phone = child.child("driverPhoneNumber").exists() ? child.child("driverPhoneNumber").getValue(String.class) : "N/A";
+                        String paymentMethod = child.child("paymentMethod").exists() ? child.child("paymentMethod").getValue(String.class) : "N/A";
+                        String paymentStatus = child.child("paymentStatus").exists() ? child.child("paymentStatus").getValue(String.class) : "N/A";
+                        String address = child.child("carPart").exists() ? child.child("carPart").getValue(String.class) : "N/A";
 
-                        String name = snapshot.child("carModel").exists() ? snapshot.child("name").getValue(String.class) : "N/A";
+                        String name = child.child("carModel").exists() ? child.child("carModel").getValue(String.class) : "N/A";
 //                        String name = child.child("carModel").getValue(String.class);
 
 
@@ -212,19 +228,19 @@ CreatePDF();
 //    Phrase dataPhrase = new Phrase();
 
     dataPhrase.add(dateChunk);
-    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add("      ");  // Add some space between the name and address
     dataPhrase.add(nameChunk);
-    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add("      ");  // Add some space between the name and address
     dataPhrase.add(addressChunk);
-    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add("      ");  // Add some space between the name and address
     dataPhrase.add(problemChunk);
-    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add("     ");  // Add some space between the name and address
     dataPhrase.add(priceChunk);
-    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add("      ");  // Add some space between the name and address
     dataPhrase.add(phoneChunk);
-    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add("      ");  // Add some space between the name and address
     dataPhrase.add(methodChunk);
-    dataPhrase.add("  ");  // Add some space between the name and address
+    dataPhrase.add("      ");  // Add some space between the name and address
     dataPhrase.add(statusChunk);
 
 // Create a new paragraph and add the phrase to it
@@ -238,12 +254,14 @@ CreatePDF();
 
 
 
-
-
+                    }}else {
+                        // If the snapshot has no children, add a message to the PDF
+                        doc.add(new Paragraph("No data available"));
                     }
+                    doc.close();
                     // Add data to the PDF
 
-                    doc.close();
+
 
 
                 } catch (Exception e) {

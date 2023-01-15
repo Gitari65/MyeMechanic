@@ -516,11 +516,16 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
 
     private void checkOnlineStatus(String status) {
         // check online status
-        myuid= FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference dbref = FirebaseDatabase.getInstance().getReference("Technicians").child(myuid);
-        HashMap<String, Object> hashMap = new HashMap<>();
-        hashMap.put("onlineStatus", status);
-        dbref.updateChildren(hashMap);
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        if (user != null) {
+            myuid = user.getUid();
+            DatabaseReference dbref = FirebaseDatabase.getInstance().getReference("Technicians").child(myuid);
+            HashMap<String, Object> hashMap = new HashMap<>();
+            hashMap.put("onlineStatus", status);
+            dbref.updateChildren(hashMap);
+        }
+
+
     }
     private void checkUserStatus() {
         FirebaseUser user = firebaseAuth.getCurrentUser();

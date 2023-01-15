@@ -123,7 +123,7 @@ CreatePDF();
 
 
                 // Create a new PDF document
-                Document doc = new Document(new Rectangle(PageSize.A4.getWidth() + 100, PageSize.A4.getHeight()));
+                Document doc = new Document(new Rectangle(PageSize.A4.getWidth() + 200, PageSize.A4.getHeight()));
                 try {
 
                     // Create a file in the internal storage directory
@@ -151,6 +151,7 @@ CreatePDF();
                     Phrase dataPhrase3 = new Phrase();
                     Paragraph dataParagraph3 = new Paragraph();
                     Chunk titleChunk3 = new Chunk("My-Mechanic Service Reports", nameFont3);
+                    dataParagraph3.setSpacingAfter(10);
                     dataPhrase3.add(titleChunk3);
                     dataParagraph3.add(dataPhrase3);
 
@@ -162,29 +163,33 @@ CreatePDF();
                     nameFont.setStyle(Font.BOLD);
 
                     Chunk dateChunk1 = new Chunk("DATE", nameFont);
+                    Chunk timeChunk1 = new Chunk("TIME", nameFont);
+
                     Chunk modelChunk1 = new Chunk("MODEL", nameFont);
-                    Chunk partChunk1 = new Chunk("CARPART", nameFont);
+                    Chunk partChunk1 = new Chunk("PART", nameFont);
                     Chunk problemChunk1 = new Chunk("PROBLEM", nameFont);
                     Chunk priceChunk1 = new Chunk("PRICE", nameFont);
-                    Chunk phoneChunk1 = new Chunk("DRIVERPHONE.NO", nameFont);
-                    Chunk methodChunk1 = new Chunk("PAYMENTMODE", nameFont);
-                    Chunk statusChunk1 = new Chunk("PAYMENTSTATUS", nameFont);
+                    Chunk phoneChunk1 = new Chunk("DRIVER", nameFont);
+                    Chunk methodChunk1 = new Chunk("PAYMENT", nameFont);
+                    Chunk statusChunk1 = new Chunk("STATUS", nameFont);
 
                     Phrase dataPhrase1 = new Phrase();
                     dataPhrase1.add(dateChunk1);
-                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add("         ");  // Add some space between the name and address
+                    dataPhrase1.add(timeChunk1);
+                    dataPhrase1.add("        ");
                     dataPhrase1.add(modelChunk1);
-                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add("         ");  // Add some space between the name and address
                     dataPhrase1.add(partChunk1);
-                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add("          ");  // Add some space between the name and address
                     dataPhrase1.add(problemChunk1);
-                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add("     ");  // Add some space between the name and address
                     dataPhrase1.add(priceChunk1);
-                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add("       ");  // Add some space between the name and address
                     dataPhrase1.add(phoneChunk1);
-                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add("        ");  // Add some space between the name and address
                     dataPhrase1.add(methodChunk1);
-                    dataPhrase1.add("  ");  // Add some space between the name and address
+                    dataPhrase1.add("      ");  // Add some space between the name and address
                     dataPhrase1.add(statusChunk1);
                     // Create a new paragraph and add the phrase to it
                     Paragraph dataParagraph1 = new Paragraph();
@@ -196,15 +201,15 @@ CreatePDF();
                         // Create a new phrase and add the chunks to it
                         Phrase dataPhrase = new Phrase();
 
-                        String date = child.child("date").exists() ? child.child("date").getValue(String.class) : "N/A";
-                        String problem = child.child("workProblem").exists() ? child.child("workProblem").getValue(String.class) : "N/A";
+                        String date = child.child("date").exists() ? child.child("date").getValue(String.class) : "      N/A       ";
+                        String problem = child.child("workProblem").exists() ? child.child("workProblem").getValue(String.class) : "  N/A   ";
                         String price = child.child("workPrice").exists() ? child.child("workPrice").getValue(String.class) : "N/A";
-                        String phone = child.child("driverPhoneNumber").exists() ? child.child("driverPhoneNumber").getValue(String.class) : "N/A";
-                        String paymentMethod = child.child("paymentMethod").exists() ? child.child("paymentMethod").getValue(String.class) : "N/A";
-                        String paymentStatus = child.child("paymentStatus").exists() ? child.child("paymentStatus").getValue(String.class) : "N/A";
-                        String address = child.child("carPart").exists() ? child.child("carPart").getValue(String.class) : "N/A";
+                        String phone = child.child("driverPhoneNumber").exists() ? child.child("driverPhoneNumber").getValue(String.class) : "   N/A  ";
+                        String paymentMethod = child.child("paymentMethod").exists() ? child.child("paymentMethod").getValue(String.class) : " N/A ";
+                        String paymentStatus = child.child("paymentStatus").exists() ? child.child("paymentStatus").getValue(String.class) : " N/A ";
+                        String address = child.child("carPart").exists() ? child.child("carPart").getValue(String.class) : "  N/A  ";
 
-                        String name = child.child("carModel").exists() ? child.child("carModel").getValue(String.class) : "N/A";
+                        String name = child.child("carModel").exists() ? child.child("carModel").getValue(String.class) : "  N/A  ";
 //                        String name = child.child("carModel").getValue(String.class);
 
 
@@ -230,17 +235,17 @@ CreatePDF();
     dataPhrase.add(dateChunk);
     dataPhrase.add("      ");  // Add some space between the name and address
     dataPhrase.add(nameChunk);
-    dataPhrase.add("      ");  // Add some space between the name and address
+    dataPhrase.add("        ");  // Add some space between the name and address
     dataPhrase.add(addressChunk);
-    dataPhrase.add("      ");  // Add some space between the name and address
+    dataPhrase.add("        ");  // Add some space between the name and address
     dataPhrase.add(problemChunk);
-    dataPhrase.add("     ");  // Add some space between the name and address
+    dataPhrase.add("           ");  // Add some space between the name and address
     dataPhrase.add(priceChunk);
-    dataPhrase.add("      ");  // Add some space between the name and address
+    dataPhrase.add("           ");  // Add some space between the name and address
     dataPhrase.add(phoneChunk);
-    dataPhrase.add("      ");  // Add some space between the name and address
+    dataPhrase.add("           ");  // Add some space between the name and address
     dataPhrase.add(methodChunk);
-    dataPhrase.add("      ");  // Add some space between the name and address
+    dataPhrase.add("          ");  // Add some space between the name and address
     dataPhrase.add(statusChunk);
 
 // Create a new paragraph and add the phrase to it

@@ -128,6 +128,10 @@ public class DriversHomeActivity extends AppCompatActivity {
                         replaceFragment(new ChatlistFragment());
                         //replaceFragment(new PendingMechanicsFragments());
                         break;
+                    case R.id.nav_drivers_history:
+                        drawerLayout.closeDrawer(GravityCompat.START);
+                        replaceFragment(new DriverReportFragment());
+                        break;
 
                     case R.id.nav_drivers_logout:
                         drawerLayout.closeDrawer(GravityCompat.START);

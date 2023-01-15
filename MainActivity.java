@@ -52,6 +52,7 @@ import com.shashank.sony.fancytoastlib.FancyToast;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 DrawerLayout drawerLayout ;
@@ -295,6 +296,9 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
 
             }
         });
+
+
+
         // startActivity(new Intent(getApplicationContext(), TechnicianHomeActivity.class));
 
 
@@ -536,7 +540,7 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
     }
 
     private void checkTypingStatus(String typing) {
-        myuid= FirebaseAuth.getInstance().getCurrentUser().getUid();
+        myuid= Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         DatabaseReference dbref = FirebaseDatabase.getInstance().getReference("Technicians").child(myuid);
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("typingTo", typing);

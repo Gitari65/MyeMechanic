@@ -45,6 +45,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
@@ -93,6 +94,11 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
     int pageWidth=1700;
     String printDate,Amount,Problem,date,carModel,user,phone,total,Payment,Expense,paymentStatus;
     ProgressBar loadingPB;
+    // Variables to store the counts
+    int count1 ;
+    int count2 ;
+    int count3 ;
+    int count4 ;
 
     public ReportsFragment() {
         // Required empty public constructor
@@ -449,7 +455,7 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference ref = database.getReference().child("DriverRequest").child("MechanicWork");
 
 // Retrieve data from the database
-        ref.equalTo("mechanicId",userID).addListenerForSingleValueEvent(new ValueEventListener() {
+        ref.orderByChild("mechanicId").equalTo(userID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
@@ -595,6 +601,102 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                         // If the snapshot has no children, add a message to the PDF
                         doc.add(new Paragraph("No data available"));
                     }
+
+                    // Reference to the specific parent node in the database
+                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference("DriverRequest").child("MechanicWork");
+                      count1=0;
+
+// Query to find all children that contain the first value
+                    Query query1 = ref.orderByChild("carPart").equalTo("Engine");
+                    query1.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            // Get the number of children that contain the first value
+                            count1 = (int) dataSnapshot.getChildrenCount();
+                            Chunk engine = new Chunk("Engine", nameFont);
+                            Chunk engineDb = new Chunk((char) count1);
+
+                            Phrase dataPhrase5 = new Phrase();
+                            dataPhrase5.add(engine);
+                            dataPhrase5.add(":");
+                            dataPhrase5.add(engineDb);
+
+                            Paragraph dataParagraph5 = new Paragraph();
+                            dataParagraph5.add(dataPhrase5);
+
+// Add the paragraph to the PDF
+                            try {
+                                doc.add(dataParagraph5);
+                            } catch (DocumentException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("TAG", "Query cancelled", databaseError.toException());
+                        }
+                    });
+
+// Query to find all children that contain the second value
+                    Query query2 = ref.orderByChild("carPart").equalTo("Tyres");
+                    query2.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            // Get the number of children that contain the second value
+                            count2 = (int) dataSnapshot.getChildrenCount();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("TAG", "Query cancelled", databaseError.toException());
+                        }
+                    });
+
+// Query to find all children that contain the third value
+                    Query query3 = ref.orderByChild("paymentMethod").equalTo("Mpesa");
+                    query3.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            // Get the number of children that contain the third value
+                            count3 = (int) dataSnapshot.getChildrenCount();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("TAG", "Query cancelled", databaseError.toException());
+                        }
+                    });
+                    // Query to find all children that contain the fourth value
+                    Query query4 = ref.orderByChild("paymentMethod").equalTo("Cash");
+                    query3.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            // Get the number of children that contain the third value
+                            count4 = (int) dataSnapshot.getChildrenCount();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("TAG", "Query cancelled", databaseError.toException());
+                        }
+                    });
+
+// Print the count1
+                    Chunk engine = new Chunk("Engine", nameFont);
+                    Chunk engineDb = new Chunk((char) count1);
+                    Phrase dataPhrase5 = new Phrase();
+                    dataPhrase5.add(engine);
+                    dataPhrase5.add(":");
+                    dataPhrase5.add(engineDb);
+
+                    Paragraph dataParagraph5 = new Paragraph();
+                    dataParagraph5.add(dataPhrase5);
+
+// Add the paragraph to the PDF
+                        doc.add(dataParagraph5);
+
+
                     doc.close();
                     // Add data to the PDF
 

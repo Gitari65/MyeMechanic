@@ -540,11 +540,15 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
     }
 
     private void checkTypingStatus(String typing) {
-        myuid= Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-        DatabaseReference dbref = FirebaseDatabase.getInstance().getReference("Technicians").child(myuid);
-        HashMap<String, Object> hashMap = new HashMap<>();
-        hashMap.put("typingTo", typing);
-        dbref.updateChildren(hashMap);
+        FirebaseUser user = firebaseAuth.getCurrentUser();
+        if (user != null) {
+            myuid = user.getUid();
+            DatabaseReference dbref = FirebaseDatabase.getInstance().getReference("Technicians").child(myuid);
+            HashMap<String, Object> hashMap = new HashMap<>();
+            hashMap.put("typingTo", typing);
+            dbref.updateChildren(hashMap);
+        }
+
     }
 
     @Override

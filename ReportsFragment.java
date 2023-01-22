@@ -65,6 +65,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -605,7 +606,8 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                     // Reference to the specific parent node in the database
                     DatabaseReference ref = FirebaseDatabase.getInstance().getReference("DriverRequest").child("MechanicWork");
                       count1=0;
-
+// Create a CountDownLatch with the number of queries
+                    CountDownLatch latch = new CountDownLatch(4);
 // Query to find all children that contain the first value
                     Query query1 = ref.orderByChild("carPart").equalTo("Engine");
                     query1.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -613,23 +615,8 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             // Get the number of children that contain the first value
                             count1 = (int) dataSnapshot.getChildrenCount();
-                            Chunk engine = new Chunk("Engine", nameFont);
-                            Chunk engineDb = new Chunk((char) count1);
-
-                            Phrase dataPhrase5 = new Phrase();
-                            dataPhrase5.add(engine);
-                            dataPhrase5.add(":");
-                            dataPhrase5.add(engineDb);
-
-                            Paragraph dataParagraph5 = new Paragraph();
-                            dataParagraph5.add(dataPhrase5);
-
-// Add the paragraph to the PDF
-                            try {
-                                doc.add(dataParagraph5);
-                            } catch (DocumentException e) {
-                                e.printStackTrace();
-                            }
+                            // Decrement the latch
+                            latch.countDown();
                         }
 
                         @Override
@@ -645,6 +632,8 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             // Get the number of children that contain the second value
                             count2 = (int) dataSnapshot.getChildrenCount();
+                            // Decrement the latch
+                            latch.countDown();
                         }
 
                         @Override
@@ -674,6 +663,8 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             // Get the number of children that contain the third value
                             count4 = (int) dataSnapshot.getChildrenCount();
+                            // Decrement the latch
+                            latch.countDown();
                         }
 
                         @Override

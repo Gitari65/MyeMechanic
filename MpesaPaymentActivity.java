@@ -103,7 +103,7 @@ private ProgressDialog progressDialog;
         String timestamp=String.valueOf(System.currentTimeMillis());
         if(RequestID!=null){
             Retrofit.Builder builder=new Retrofit.Builder()
-                    .baseUrl("https://1edc-105-161-87-76.in.ngrok.io/")
+                    .baseUrl("https://6348-105-161-150-148.in.ngrok.io/")
                     .addConverterFactory(GsonConverterFactory.create());
 
             Retrofit retrofit=builder.build();
@@ -118,7 +118,7 @@ private ProgressDialog progressDialog;
             call.enqueue(new Callback<StkPushResponse>() {
                 @Override
                 public void onResponse(@NonNull Call<StkPushResponse> call, @NonNull Response<StkPushResponse> response) {
-                    assert response.body() != null;
+//                    assert response.body() != null;
                     if(response.body().getResponseCode().equals("0")){
                         progressDialog.dismiss();
                         Toast.makeText(getApplicationContext(),"Payment Prompted",Toast.LENGTH_SHORT).show();

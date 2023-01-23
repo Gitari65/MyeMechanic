@@ -507,7 +507,7 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                     Chunk modelChunk1 = new Chunk("MODEL", nameFont);
                     Chunk partChunk1 = new Chunk("PART", nameFont);
                     Chunk problemChunk1 = new Chunk("PROBLEM", nameFont);
-                    Chunk priceChunk1 = new Chunk("PRICE", nameFont);
+                    Chunk priceChunk1 = new Chunk("AMOUNT(kshs)", nameFont);
                     Chunk phoneChunk1 = new Chunk("DRIVER", nameFont);
                     Chunk methodChunk1 = new Chunk("PAYMENT", nameFont);
                     Chunk statusChunk1 = new Chunk("STATUS", nameFont);
@@ -522,9 +522,9 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                     dataPhrase1.add(partChunk1);
                     dataPhrase1.add("          ");  // Add some space between the name and address
                     dataPhrase1.add(problemChunk1);
-                    dataPhrase1.add("     ");  // Add some space between the name and address
+                    dataPhrase1.add(" ");  // Add some space between the name and address
                     dataPhrase1.add(priceChunk1);
-                    dataPhrase1.add("       ");  // Add some space between the name and address
+                    dataPhrase1.add("   ");  // Add some space between the name and address
                     dataPhrase1.add(phoneChunk1);
                     dataPhrase1.add("        ");  // Add some space between the name and address
                     dataPhrase1.add(methodChunk1);
@@ -606,17 +606,21 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                     // Reference to the specific parent node in the database
                     DatabaseReference ref = FirebaseDatabase.getInstance().getReference("DriverRequest").child("MechanicWork");
                       count1=0;
+                      count2=0;
+                      count3=0;
+                      count4=0;
+
 // Create a CountDownLatch with the number of queries
                     CountDownLatch latch = new CountDownLatch(4);
 // Query to find all children that contain the first value
                     Query query1 = ref.orderByChild("carPart").equalTo("Engine");
                     query1.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             // Get the number of children that contain the first value
                             count1 = (int) dataSnapshot.getChildrenCount();
                             // Decrement the latch
-                            latch.countDown();
+//                            latch.countDown();
                         }
 
                         @Override
@@ -629,11 +633,11 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                     Query query2 = ref.orderByChild("carPart").equalTo("Tyres");
                     query2.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             // Get the number of children that contain the second value
                             count2 = (int) dataSnapshot.getChildrenCount();
                             // Decrement the latch
-                            latch.countDown();
+//                            latch.countDown();
                         }
 
                         @Override
@@ -646,9 +650,11 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                     Query query3 = ref.orderByChild("paymentMethod").equalTo("Mpesa");
                     query3.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             // Get the number of children that contain the third value
                             count3 = (int) dataSnapshot.getChildrenCount();
+                            // Decrement the latch
+//                            latch.countDown();
                         }
 
                         @Override
@@ -657,14 +663,14 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                         }
                     });
                     // Query to find all children that contain the fourth value
-                    Query query4 = ref.orderByChild("paymentMethod").equalTo("Cash");
-                    query3.addListenerForSingleValueEvent(new ValueEventListener() {
+                    Query query4= ref.orderByChild("paymentMethod").equalTo("Cash");
+                    query4.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             // Get the number of children that contain the third value
                             count4 = (int) dataSnapshot.getChildrenCount();
                             // Decrement the latch
-                            latch.countDown();
+//                            latch.countDown();
                         }
 
                         @Override
@@ -672,9 +678,11 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
                             Log.w("TAG", "Query cancelled", databaseError.toException());
                         }
                     });
-
+// Wait for all queries to complete
+//                    latch.await();
 // Print the count1
                     Chunk engine = new Chunk("Engine", nameFont);
+
                     Chunk engineDb = new Chunk((char) count1);
                     Phrase dataPhrase5 = new Phrase();
                     dataPhrase5.add(engine);

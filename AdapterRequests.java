@@ -22,6 +22,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -251,6 +252,8 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
     }
     public void SaveWorkHistory(){
       String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String timestamp = String.valueOf(System.currentTimeMillis());
+
         Map<String, Object> userToy1 = new HashMap<>();
         userToy1.put("carModel", carModel);
         userToy1.put("driversId", current_userId);
@@ -258,6 +261,8 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         userToy1.put("carPart", carPart);
         userToy1.put("carProblemDescription", carProblemDescription);
         userToy1.put("driverFirstName", driverFirstName);
+        userToy1.put("timestamp", timestamp);
+
 
         userToy1.put("driverPhoneNumber", driverPhoneNumber);
 

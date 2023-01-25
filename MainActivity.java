@@ -126,7 +126,7 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
                 drawerLayout.closeDrawer(GravityCompat.START);
                 break;
             case R.id.nav_history:
-                replaceFragment(new ReportsFragment());
+                replaceFragment(new MainReportFragment());
                 drawerLayout.closeDrawer(GravityCompat.START);
                 break;
             case R.id.nav_requests:

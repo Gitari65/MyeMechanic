@@ -1,20 +1,45 @@
 package com.example.myemechanic;
 
+import static android.content.ContentValues.TAG;
+
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfWriter;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -53,7 +78,10 @@ public class MainReportFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-
+    DatePicker startDatePicker,endDatePicker;
+    long startTimestamp,endTimestamp;
+    int count1,count2,count3,count4;
+     TextView selectedDateTextView,selectedDateTextView1;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,9 +96,12 @@ public class MainReportFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+
         View view= inflater.inflate(R.layout.fragment_main_report, container, false);
+         startDatePicker = view.findViewById(R.id.start_date_picker);
+         endDatePicker = view.findViewById(R.id.end_date_picker);
         DatePicker datePicker = view.findViewById(R.id.start_date_picker);
-        final TextView selectedDateTextView = view.findViewById(R.id.txtview_startdate);
+         selectedDateTextView = view.findViewById(R.id.txtview_startdate);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             datePicker.setOnDateChangedListener(new DatePicker.OnDateChangedListener() {
@@ -84,7 +115,7 @@ public class MainReportFragment extends Fragment {
             });
         }
         DatePicker datePicker1 = view.findViewById(R.id.end_date_picker);
-        final TextView selectedDateTextView1 = view.findViewById(R.id.txtview_enddate);
+        selectedDateTextView1 = view.findViewById(R.id.txtview_enddate);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             datePicker.setOnDateChangedListener(new DatePicker.OnDateChangedListener() {
@@ -99,6 +130,305 @@ public class MainReportFragment extends Fragment {
         }
 
 
+        Calendar startCalendar = Calendar.getInstance();
+        startCalendar.set(startDatePicker.getYear(), startDatePicker.getMonth(), startDatePicker.getDayOfMonth());
+        startTimestamp = startCalendar.getTimeInMillis();
+
+        Calendar endCalendar = Calendar.getInstance();
+        endCalendar.set(endDatePicker.getYear(), endDatePicker.getMonth(), endDatePicker.getDayOfMonth());
+       endTimestamp = endCalendar.getTimeInMillis();
+
+        selectedDateTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(datePicker.getVisibility() == View.VISIBLE){
+                    datePicker.setVisibility(View.GONE);
+                } else {
+                    datePicker.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+        selectedDateTextView1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(datePicker1.getVisibility() == View.VISIBLE){
+                    datePicker1.setVisibility(View.GONE);
+                } else {
+                    datePicker1.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
         return view;
+    }
+    public void CreateReport(){
+
+        String userID= FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+// Get a reference to the database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        Query ref = database.getReference().child("DriverRequest").child("MechanicWork");
+// Retrieve data from the database
+        ref.equalTo("mechanicId",userID).orderByChild("timestamp").startAt(String.valueOf(startTimestamp)).endAt(String.valueOf(endTimestamp))
+.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+
+                // Create a new PDF document
+                Document doc = new Document(new Rectangle(PageSize.A4.getWidth() + 200, PageSize.A4.getHeight()));
+                try {
+
+                    // Create a file in the internal storage directory
+                    File file=new File(requireActivity().getExternalFilesDir("/"),"/output.pdf");
+
+                    try {
+                        PdfWriter.getInstance(doc, new FileOutputStream(file));
+                        doc.open();
+
+                        Toast.makeText(getContext(), " Downloading... ",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), " Downloaded",Toast.LENGTH_SHORT).show();
+
+
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Create a new PdfWriter for the file
+                    // Create a new PdfWriter for the file
+
+                    Font nameFont3 = new Font();
+                    nameFont3.setSize(19);
+                    nameFont3.setStyle(Font.BOLD);
+                    Phrase dataPhrase3 = new Phrase();
+                    Paragraph dataParagraph3 = new Paragraph();
+                    Chunk titleChunk3 = new Chunk("My-Mechanic Service Reports", nameFont3);
+                    dataParagraph3.setSpacingAfter(10);
+                    dataPhrase3.add(titleChunk3);
+                    dataParagraph3.add(dataPhrase3);
+
+// Add the paragraph to the PDF
+                    doc.add(dataParagraph3);
+                    // Create a new font for the name
+                    Font nameFont = new Font();
+                    nameFont.setSize(12);
+                    nameFont.setStyle(Font.BOLD);
+
+                    Chunk dateChunk1 = new Chunk("DATE", nameFont);
+                    Chunk timeChunk1 = new Chunk("TIME", nameFont);
+
+                    Chunk modelChunk1 = new Chunk("MODEL", nameFont);
+                    Chunk partChunk1 = new Chunk("PART", nameFont);
+                    Chunk problemChunk1 = new Chunk("PROBLEM", nameFont);
+                    Chunk priceChunk1 = new Chunk("AMOUNT(kshs)", nameFont);
+                    Chunk phoneChunk1 = new Chunk("DRIVER", nameFont);
+                    Chunk methodChunk1 = new Chunk("PAYMENT", nameFont);
+                    Chunk statusChunk1 = new Chunk("STATUS", nameFont);
+
+                    Phrase dataPhrase1 = new Phrase();
+                    dataPhrase1.add(dateChunk1);
+                    dataPhrase1.add("         ");  // Add some space between the name and address
+                    dataPhrase1.add(timeChunk1);
+                    dataPhrase1.add("        ");
+                    dataPhrase1.add(modelChunk1);
+                    dataPhrase1.add("         ");  // Add some space between the name and address
+                    dataPhrase1.add(partChunk1);
+                    dataPhrase1.add("          ");  // Add some space between the name and address
+                    dataPhrase1.add(problemChunk1);
+                    dataPhrase1.add(" ");  // Add some space between the name and address
+                    dataPhrase1.add(priceChunk1);
+                    dataPhrase1.add("   ");  // Add some space between the name and address
+                    dataPhrase1.add(phoneChunk1);
+                    dataPhrase1.add("        ");  // Add some space between the name and address
+                    dataPhrase1.add(methodChunk1);
+                    dataPhrase1.add("      ");  // Add some space between the name and address
+                    dataPhrase1.add(statusChunk1);
+                    // Create a new paragraph and add the phrase to it
+                    Paragraph dataParagraph1 = new Paragraph();
+                    dataParagraph1.add(dataPhrase1);
+                    doc.add(dataParagraph1);
+                    if (snapshot.hasChildren()) {
+
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            // Create a new phrase and add the chunks to it
+                            Phrase dataPhrase = new Phrase();
+
+                            String date = child.child("date").exists() ? child.child("date").getValue(String.class) : "      N/A       ";
+                            String problem = child.child("workProblem").exists() ? child.child("workProblem").getValue(String.class) : "  N/A   ";
+                            String price = child.child("workPrice").exists() ? child.child("workPrice").getValue(String.class) : "N/A";
+                            String phone = child.child("driverPhoneNumber").exists() ? child.child("driverPhoneNumber").getValue(String.class) : "   N/A  ";
+                            String paymentMethod = child.child("paymentMethod").exists() ? child.child("paymentMethod").getValue(String.class) : " N/A ";
+                            String paymentStatus = child.child("paymentStatus").exists() ? child.child("paymentStatus").getValue(String.class) : " N/A ";
+                            String address = child.child("carPart").exists() ? child.child("carPart").getValue(String.class) : "  N/A  ";
+
+                            String name = child.child("carModel").exists() ? child.child("carModel").getValue(String.class) : "  N/A  ";
+//                        String name = child.child("carModel").getValue(String.class);
+
+
+
+
+
+                            // Create a new chunk with the name
+                            Chunk nameChunk = new Chunk(name);
+                            Chunk dateChunk = new Chunk(date);
+
+                            Chunk problemChunk = new Chunk(problem);
+
+                            Chunk priceChunk = new Chunk(price);
+                            Chunk phoneChunk = new Chunk(phone);
+                            Chunk methodChunk = new Chunk(paymentMethod);
+                            Chunk statusChunk = new Chunk(paymentStatus);
+// Create a new chunk with the address
+                            Chunk addressChunk = new Chunk(address);
+
+// Create a new phrase and add the chunks to it
+//    Phrase dataPhrase = new Phrase();
+
+                            dataPhrase.add(dateChunk);
+                            dataPhrase.add("      ");  // Add some space between the name and address
+                            dataPhrase.add(nameChunk);
+                            dataPhrase.add("        ");  // Add some space between the name and address
+                            dataPhrase.add(addressChunk);
+                            dataPhrase.add("        ");  // Add some space between the name and address
+                            dataPhrase.add(problemChunk);
+                            dataPhrase.add("           ");  // Add some space between the name and address
+                            dataPhrase.add(priceChunk);
+                            dataPhrase.add("           ");  // Add some space between the name and address
+                            dataPhrase.add(phoneChunk);
+                            dataPhrase.add("           ");  // Add some space between the name and address
+                            dataPhrase.add(methodChunk);
+                            dataPhrase.add("          ");  // Add some space between the name and address
+                            dataPhrase.add(statusChunk);
+
+// Create a new paragraph and add the phrase to it
+                            Paragraph dataParagraph = new Paragraph();
+                            dataParagraph.add(dataPhrase);
+
+// Add the paragraph to the PDF
+                            doc.add(dataParagraph);
+
+
+
+
+
+                        }}else {
+                        // If the snapshot has no children, add a message to the PDF
+                        doc.add(new Paragraph("No data available"));
+                    }
+
+                    // Reference to the specific parent node in the database
+                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference("DriverRequest").child("MechanicWork");
+                    count1=0;
+                    count2=0;
+                    count3=0;
+                    count4=0;
+
+// Create a CountDownLatch with the number of queries
+                    CountDownLatch latch = new CountDownLatch(4);
+// Query to find all children that contain the first value
+                    Query query1 = ref.orderByChild("carPart").equalTo("Engine");
+                    query1.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            // Get the number of children that contain the first value
+                            count1 = (int) dataSnapshot.getChildrenCount();
+                            // Decrement the latch
+//                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("TAG", "Query cancelled", databaseError.toException());
+                        }
+                    });
+
+// Query to find all children that contain the second value
+                    Query query2 = ref.orderByChild("carPart").equalTo("Tyres");
+                    query2.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            // Get the number of children that contain the second value
+                            count2 = (int) dataSnapshot.getChildrenCount();
+                            // Decrement the latch
+//                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("TAG", "Query cancelled", databaseError.toException());
+                        }
+                    });
+
+// Query to find all children that contain the third value
+                    Query query3 = ref.orderByChild("paymentMethod").equalTo("Mpesa");
+                    query3.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            // Get the number of children that contain the third value
+                            count3 = (int) dataSnapshot.getChildrenCount();
+                            // Decrement the latch
+//                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("TAG", "Query cancelled", databaseError.toException());
+                        }
+                    });
+                    // Query to find all children that contain the fourth value
+                    Query query4= ref.orderByChild("paymentMethod").equalTo("Cash");
+                    query4.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            // Get the number of children that contain the third value
+                            count4 = (int) dataSnapshot.getChildrenCount();
+                            // Decrement the latch
+//                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("TAG", "Query cancelled", databaseError.toException());
+                        }
+                    });
+// Wait for all queries to complete
+//                    latch.await();
+// Print the count1
+                    Chunk engine = new Chunk("Engine", nameFont);
+
+                    Chunk engineDb = new Chunk((char) count1);
+                    Phrase dataPhrase5 = new Phrase();
+                    dataPhrase5.add(engine);
+                    dataPhrase5.add(":");
+                    dataPhrase5.add(engineDb);
+
+                    Paragraph dataParagraph5 = new Paragraph();
+                    dataParagraph5.add(dataPhrase5);
+
+// Add the paragraph to the PDF
+                    doc.add(dataParagraph5);
+
+
+                    doc.close();
+                    // Add data to the PDF
+
+
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.d(TAG, "onDataChange: error pdf ");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Handle error
+                Log.d(TAG, "onDatabaseError: error pdf ");
+
+            }
+        });
+
     }
 }

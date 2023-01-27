@@ -26,6 +26,16 @@ public class request_details {
 
     private  String carModel;
 
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    private  Long timestamp;
     public String getPaymentStatus() {
         return paymentStatus;
     }

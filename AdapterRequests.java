@@ -68,12 +68,13 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         return new MyViewHolder(v,recyclerViewInterface);
     }
     String current_userId;
-
+     String mechanicFirstName,mechanicPhoneNumber;
         String driverFirstName;
         String driverSecondName;
         String driverEmail;
         String driverPhoneNumber,workChildKey;
         String carModel,carPart,carProblemDescription,date,responseDate,status;
+    final long  timestamp = System.currentTimeMillis();
 
     @Override
     public void onBindViewHolder(@NonNull AdapterRequests.MyViewHolder holder, int position) {
@@ -85,6 +86,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         carModel=req.getCarModel();
         carPart=req.getCarPart();
         status=req.getStatus();
+
         current_userId=req.getDriversId();
 
             FirebaseAuth mAuth= FirebaseAuth.getInstance();
@@ -150,6 +152,9 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                 String date=req.getDate();
                 String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
                 String status=req.getStatus();
+                String CarPart=req.getCarPart();
+                String CarModel=req.getCarModel();
+
                 DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
                 DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
                 Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
@@ -160,17 +165,22 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                             Map<String, Object> map = new HashMap<>();
                             map.put("status", "accepted");
                             map.put("mechanicId", userId);
+                            map.put("timestamp",timestamp);
                             ds.getRef().updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void unused) {
                                     SaveWorkHistory();
+                                    storeReport();
 
                                     Toast.makeText(context, " accepted request successfully ",Toast.LENGTH_SHORT).show();
 
                                     Intent intent=new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
                                     intent.putExtra("driversId", current_userId);
                                     intent.putExtra("date", date);
+                                    intent.putExtra("timestamp",  timestamp);
 
+                                    intent.putExtra("CarPart", CarPart);
+                                    intent.putExtra("CarModel", CarModel);
                                     intent.putExtra("workChildKey", workChildKey);
                                     context.startActivity(intent);
 
@@ -193,9 +203,14 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         holder.buttonView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String CarPart=req.getCarPart();
+                String CarModel=req.getCarModel();
                 Intent intent =new Intent(context.getApplicationContext(),MechanicSelectDriver.class);
                 intent.putExtra("driversId",current_userId);
                 intent.putExtra("date",  req.getDate());
+                intent.putExtra("CarPart", CarPart);
+                intent.putExtra("CarModel", CarModel);
+                intent.putExtra("timestamp",  req.getTimestamp());
                 context.startActivity(intent);
             }
         });
@@ -209,7 +224,7 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
                 String description=req.getCarProblemDescription();
                 String model=req.getCarModel();
                 String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
-                String status="cancelled";
+                String status= "cancelled";
 
                 //save to cancelled transanction
 
@@ -262,18 +277,13 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
         userToy1.put("carProblemDescription", carProblemDescription);
         userToy1.put("driverFirstName", driverFirstName);
         userToy1.put("timestamp", timestamp);
-
-
         userToy1.put("driverPhoneNumber", driverPhoneNumber);
-
-
         userToy1.put("finalStatus", "");
         userToy1.put("responseDate", responseDate);
         userToy1.put("status", status);
         userToy1.put("date", date);
-        DatabaseReference myRef1=FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("MechanicWork").push();
-
-
+        DatabaseReference myRef1=FirebaseDatabase.getInstance().getReference().child("DriverRequest").
+                child("MechanicWork").push();
         myRef1.setValue(userToy1).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
             public void onSuccess(Void unused) {
@@ -283,9 +293,86 @@ public class AdapterRequests extends RecyclerView.Adapter<AdapterRequests.MyView
             }
         });
     }
+public  void getMechanicDetails(){
+    String userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
+    if (userId!=null){
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("mechanics").document(userId).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            documentSnapshot = task.getResult();
+                            if (documentSnapshot.exists()) {
+
+                                mechanicFirstName= documentSnapshot.getString("firstName");
+
+                                mechanicPhoneNumber= documentSnapshot.getString("phoneNumber");
+
+                            }
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                    }
+                });
+    }
+
+}
+    public void storeSimpleRequests(){
+        String mechId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        Map<String, Object> user3 = new HashMap<>();
+        user3.put("workExpense","");
+        user3.put("workPrice","");
+        user3.put("carPart","");
+        user3.put("workProblem",carProblemDescription);
+
+        DatabaseReference dbRef=FirebaseDatabase.getInstance().getReference("Work").child("mechanics").child(mechId);
+        dbRef.push().setValue(user3);
+    }
+    public void storeReport(){
+        //get string
+        getMechanicDetails();
 
 
 
+
+        String mechId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        Map<String, Object> user3 = new HashMap<>();
+        user3.put("workExpense","");
+        user3.put("workPrice","");
+        user3.put("paymentMethod","");
+        user3.put("workProblem",carProblemDescription);
+        user3.put("timeTaken","");
+        user3.put("timestamp",timestamp);
+        user3.put("carpart",carPart);
+        user3.put("driversId",current_userId);
+        user3.put("driverFirstName",driverFirstName);
+        user3.put("driverPhoneNumber",driverPhoneNumber);
+        user3.put("paymentStatus","not paid");
+        DatabaseReference dbRef=FirebaseDatabase.getInstance().getReference("Work").child("mechanics").child(mechId);
+        dbRef.push().setValue(user3);
+        Map<String, Object> user4 = new HashMap<>();
+        user4.put("workExpense","");
+        user4.put("workPrice","");
+        user4.put("paymentMethod","");
+        user4.put("workProblem",carProblemDescription);
+        user4.put("timeTaken","");
+        user4.put("carpart",carPart);
+        user4.put("carModel",carModel);
+        user4.put("timestamp",timestamp);
+        user4.put("mechanicId",mechId);
+        user4.put("driverFirstName",driverFirstName);
+        user4.put("driverPhoneNumber",driverPhoneNumber);
+        user4.put("paymentStatus","not paid");
+        DatabaseReference dbRef1=FirebaseDatabase.getInstance().getReference("Work").child("drivers").child(current_userId);
+        dbRef1.push().setValue(user4);
+
+    }
 
 
     @Override

@@ -50,16 +50,18 @@ import java.util.Map;
 
 
 public class MechanicSelectDriver extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
-    DocumentSnapshot documentSnapshot;
+    DocumentSnapshot documentSnapshot,documentSnapshot1;
     TextView textViewphoneno,textViewfName,textViewEmail,textViewsName,textViewAddWork;
     ImageView imageView;
     Double driverCurrentLatitude,driverCurrentLongitude;
     Button buttonCall,buttonLocate,buttonChat,buttonBack,buttonToggle,buttonSaveWork;
-    EditText editTextProblem,editTextCost,editTexttimeTaken,editTextPrice;
+    EditText editTextProblem,editTextCost,editTexttimeTaken,editTextPrice,editTextCarPart,editTextCarModel;
     LinearLayout layout,layoutWorkDetails;
-    String paymentMethod,cost,price,problem, time;
+    String paymentMethod,cost,price,problem, time,part,model;
     String []payment={"Mpesa","Cash","Bank"};
     ProgressDialog pd;
+    String mechanicfirstName,mechanicEmail,mechanicPhoneNumber,mechanicsecondName;
+    String driverFirstName,driverSecondName,driverEmail,driverPhoneNumber,profileImageUrl;
 
     //kenedychomba87@gmail.com
     @Override
@@ -91,6 +93,8 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
         editTextPrice=findViewById(R.id.edtWorkPrice);
         editTextCost=findViewById(R.id.edtProblemCost);
         editTextProblem=findViewById(R.id.edtProblemFixed);
+        editTextCarModel=findViewById(R.id.edtProblemcarModel);
+        editTextCarPart=findViewById(R.id.edtProblemCarPart);
         editTexttimeTaken=findViewById(R.id.edtProblemTimetaken);
         getDriverDetails();
         //get string
@@ -98,7 +102,10 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
         price=editTextPrice.getText().toString();
         cost=editTextCost.getText().toString();
         time=editTexttimeTaken.getText().toString();
-
+String problemcarpart=getIntent().getStringExtra("CarPart");
+String problemcarmodel=getIntent().getStringExtra("CarModel");
+        editTextCarPart.setText(problemcarpart);
+        editTextCarModel.setText(problemcarmodel);
 
         //spinner
         Spinner spin = (Spinner) findViewById(R.id.spinnerPaymentMethod);
@@ -125,6 +132,7 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
             @Override
             public void onClick(View v) {
                 storeWorkDetails();
+                storeReport();
             }
         });
 
@@ -191,10 +199,22 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
         price=editTextPrice.getText().toString();
         cost=editTextCost.getText().toString();
         time=editTexttimeTaken.getText().toString();
+        part=editTextCarPart.getText().toString();
+        model=editTextCarModel.getText().toString();
         //utils
         if (price.equals("")) {
             editTextPrice.setError(" Enter the price paid");
             editTextPrice.requestFocus();
+            return;
+        }
+        if (part.equals("")) {
+            editTextCarPart.setError(" Enter part repaired");
+            editTextCarPart.requestFocus();
+            return;
+        }
+        if (model.equals("")) {
+            editTextCarModel.setError(" Enter the carModel");
+            editTextCarModel.requestFocus();
             return;
         }
         if (cost.equals("")) {
@@ -272,6 +292,126 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
 
 
     }
+    public void storeReport(){
+        //get string
+        problem=editTextProblem.getText().toString();
+        price=editTextPrice.getText().toString();
+        cost=editTextCost.getText().toString();
+        time=editTexttimeTaken.getText().toString();
+        part=editTextCarPart.getText().toString();
+        model=editTextCarModel.getText().toString();
+        //utils
+        if (price.equals("")) {
+            editTextPrice.setError(" Enter the price paid");
+            editTextPrice.requestFocus();
+            return;
+        }
+        if (part.equals("")) {
+            editTextCarPart.setError(" Enter part repaired");
+            editTextCarPart.requestFocus();
+            return;
+        }
+        if (model.equals("")) {
+            editTextCarModel.setError(" Enter the carModel");
+            editTextCarModel.requestFocus();
+            return;
+        }
+        if (cost.equals("")) {
+            editTextCost.setError("Please Enter cost");
+            editTextCost.requestFocus();
+            return;
+        }
+        if (problem.equals("")) {
+            editTextProblem.setError(" describe problem that was fixed");
+            editTextProblem.requestFocus();
+            return;
+        }
+        if (time.equals("")) {
+            editTexttimeTaken.setError(" describe problem that was fixed");
+            editTexttimeTaken.requestFocus();
+            return;
+        }
+        Long timestamp = System.currentTimeMillis();
+        String current_userId = getIntent().getStringExtra("driversId");
+        String mechId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+getDriverDetails();
+getMechanicDetails();
+        Map<String, Object> user3 = new HashMap<>();
+        user3.put("workExpense",cost);
+        user3.put("workPrice",price);
+        user3.put("paymentMethod",paymentMethod);
+        user3.put("workProblem",problem);
+        user3.put("timeTaken",time);
+        user3.put("timestamp",timestamp);
+        user3.put("driversId",current_userId);
+        user3.put("driverFirstName",driverFirstName);
+        user3.put("driverPhoneNumber",driverPhoneNumber);
+        user3.put("paymentStatus","not paid");
+        DatabaseReference dbRef=FirebaseDatabase.getInstance().getReference("Work").child("mechanics").child(mechId);
+        dbRef.push().setValue(user3);
+        Map<String, Object> user4 = new HashMap<>();
+        user4.put("workExpense",cost);
+        user4.put("workPrice",price);
+        user4.put("paymentMethod",paymentMethod);
+        user4.put("workProblem",problem);
+        user4.put("timeTaken",time);
+        user4.put("mechanicId",mechId);
+        user3.put("timestamp",timestamp);
+        user4.put("mechanicFirstName",mechanicfirstName);
+        user4.put("mechanicPhoneNumber",mechanicPhoneNumber);
+        user4.put("paymentStatus","not paid");
+        DatabaseReference dbRef1=FirebaseDatabase.getInstance().getReference("Work").child("drivers").child(current_userId);
+        dbRef1.push().setValue(user4).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                pd.dismiss();
+                Toast.makeText(getApplicationContext(),"Work Saved Successfully",Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+    }
+    public void getMechanicDetails(){
+        FirebaseAuth mAuth= FirebaseAuth.getInstance();
+        FirebaseUser userID  = mAuth.getCurrentUser();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String mechId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+
+
+        db.collection("mechanics").document(mechId).get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            documentSnapshot1 = task.getResult();
+                            if (documentSnapshot1.exists()) {
+
+
+                                mechanicfirstName=documentSnapshot1.getString("firstName");
+                                mechanicEmail=documentSnapshot1.getString("mechanicEmail");
+                                mechanicsecondName=documentSnapshot1.getString("secondName");
+
+                                mechanicPhoneNumber=documentSnapshot1.getString("phoneNumber");
+
+
+
+;
+
+
+
+
+                            }
+                        }
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+
+                    }
+                });
+    }
     public void getDriverDetails(){
         FirebaseAuth mAuth= FirebaseAuth.getInstance();
         FirebaseUser userID  = mAuth.getCurrentUser();
@@ -288,12 +428,12 @@ public class MechanicSelectDriver extends AppCompatActivity implements View.OnCl
                         if (task.isSuccessful()) {
                             documentSnapshot = task.getResult();
                             if (documentSnapshot.exists()) {
-                                String driverFirstName= documentSnapshot.getString("driverFirstName");
-                                String driverSecondName= documentSnapshot.getString("driverSecondName");
-                                String driverEmail= documentSnapshot.getString("driverEmail");
-                                String driverPhoneNumber= documentSnapshot.getString("driverPhoneNumber");
+                                driverFirstName= documentSnapshot.getString("driverFirstName");
+                                driverSecondName= documentSnapshot.getString("driverSecondName");
+                                 driverEmail= documentSnapshot.getString("driverEmail");
+                                 driverPhoneNumber= documentSnapshot.getString("driverPhoneNumber");
 
-                                String profileImageUrl= documentSnapshot.getString("profilePhoto");
+                                 profileImageUrl= documentSnapshot.getString("profilePhoto");
                                 Picasso.get().load(profileImageUrl).into(imageView);
                                driverCurrentLatitude= documentSnapshot.getDouble("driverCurrentLatitude");
                                 driverCurrentLongitude= documentSnapshot.getDouble("driverCurrentLongitude");

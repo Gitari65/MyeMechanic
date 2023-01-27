@@ -242,7 +242,7 @@ String problemcarmodel=getIntent().getStringExtra("CarModel");
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         String date = getIntent().getStringExtra("date");
         DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("MechanicWork");
-
+        Log.d(TAG, "storeWorkDetails: date: "+date);
         Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
         ValueEventListener valueEventListener = new ValueEventListener() {
             @Override
@@ -331,46 +331,116 @@ String problemcarmodel=getIntent().getStringExtra("CarModel");
             editTexttimeTaken.requestFocus();
             return;
         }
-        Long timestamp = System.currentTimeMillis();
+//      final Long timestamp = System.currentTimeMillis();
         String current_userId = getIntent().getStringExtra("driversId");
+        String timestampIntent = getIntent().getStringExtra("timestamp");
+
         String mechId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 getDriverDetails();
 getMechanicDetails();
-        Map<String, Object> user3 = new HashMap<>();
-        user3.put("workExpense",cost);
-        user3.put("workPrice",price);
-        user3.put("paymentMethod",paymentMethod);
-        user3.put("workProblem",problem);
-        user3.put("timeTaken",time);
-        user3.put("timestamp",timestamp);
-        user3.put("driversId",current_userId);
-        user3.put("driverFirstName",driverFirstName);
-        user3.put("driverPhoneNumber",driverPhoneNumber);
-        user3.put("paymentStatus","not paid");
-        DatabaseReference dbRef=FirebaseDatabase.getInstance().getReference("Work").child("mechanics").child(mechId);
-        dbRef.push().setValue(user3);
-        Map<String, Object> user4 = new HashMap<>();
-        user4.put("workExpense",cost);
-        user4.put("workPrice",price);
-        user4.put("paymentMethod",paymentMethod);
-        user4.put("workProblem",problem);
-        user4.put("timeTaken",time);
-        user4.put("mechanicId",mechId);
-        user3.put("timestamp",timestamp);
-        user4.put("mechanicFirstName",mechanicfirstName);
-        user4.put("mechanicPhoneNumber",mechanicPhoneNumber);
-        user4.put("paymentStatus","not paid");
-        DatabaseReference dbRef1=FirebaseDatabase.getInstance().getReference("Work").child("drivers").child(current_userId);
-        dbRef1.push().setValue(user4).addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void unused) {
-                pd.dismiss();
-                Toast.makeText(getApplicationContext(),"Work Saved Successfully",Toast.LENGTH_SHORT).show();
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        if (timestampIntent!=null){
+            DatabaseReference additionalUserInfoRef = rootRef.child("Work").child("mechanics").child(mechId);
+            Query userQuery = additionalUserInfoRef.orderByChild("timestamp").equalTo(timestampIntent);
+            ValueEventListener valueEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                        Map<String, Object> user3 = new HashMap<>();
+                        user3.put("workExpense",cost);
+                        user3.put("workPrice",price);
+                        user3.put("paymentMethod",paymentMethod);
+                        user3.put("workProblem",problem);
+                        user3.put("timeTaken",time);
 
+                        user3.put("driversId",current_userId);
+                        user3.put("driverFirstName",driverFirstName);
+                        user3.put("driverPhoneNumber",driverPhoneNumber);
+                        user3.put("paymentStatus","not paid");
+
+                        ds.getRef().updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+
+
+//                                Toast.makeText( getApplicationContext()," saved ",Toast.LENGTH_SHORT).show();
+
+
+
+
+                            }
+                        });
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+                }
+            };
+            userQuery.addValueEventListener(valueEventListener);
+
+                DatabaseReference additionalUserInfoRef1 = rootRef.child("Work").child("drivers").child(mechId);
+                Query userQuery1 = additionalUserInfoRef1.orderByChild("timestamp").equalTo(timestampIntent);
+                ValueEventListener valueEventListener1 = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+
+                            Map<String, Object> user4 = new HashMap<>();
+                            user4.put("workExpense",cost);
+                            user4.put("workPrice",price);
+                            user4.put("paymentMethod",paymentMethod);
+                            user4.put("workProblem",problem);
+                            user4.put("timeTaken",time);
+                            user4.put("mechanicId",mechId);
+
+                            user4.put("mechanicFirstName",mechanicfirstName);
+                            user4.put("mechanicPhoneNumber",mechanicPhoneNumber);
+                            user4.put("paymentStatus","not paid");
+
+
+                            ds.getRef().updateChildren(user4).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void unused) {
+
+
+                                    Toast.makeText( getApplicationContext()," saved ",Toast.LENGTH_SHORT).show();
+
+
+
+
+                                }
+                            });
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                        Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+                    }
+                };
+                userQuery1.addValueEventListener(valueEventListener1);
             }
-        });
+        }
 
-    }
+
+
+//        Map<String, Object> user3 = new HashMap<>();
+//        user3.put("workExpense",cost);
+//        user3.put("workPrice",price);
+//        user3.put("paymentMethod",paymentMethod);
+//        user3.put("workProblem",problem);
+//        user3.put("timeTaken",time);
+//        user3.put("timestamp",timestamp);
+//        user3.put("driversId",current_userId);
+//        user3.put("driverFirstName",driverFirstName);
+//        user3.put("driverPhoneNumber",driverPhoneNumber);
+//        user3.put("paymentStatus","not paid");
+//
+
+
+
+
+
     public void getMechanicDetails(){
         FirebaseAuth mAuth= FirebaseAuth.getInstance();
         FirebaseUser userID  = mAuth.getCurrentUser();

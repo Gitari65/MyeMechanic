@@ -13,9 +13,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.androidstudy.daraja.Daraja;
-import com.androidstudy.daraja.DarajaListener;
-import com.androidstudy.daraja.model.AccessToken;
 import com.example.myemechanic.Model.StkPushResponse;
 import com.example.myemechanic.Services.RestClient;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -204,7 +201,7 @@ private ProgressDialog progressDialog;
     }
     public  void  getReportDetails(){
         String Date1=getIntent().getStringExtra("date");
-
+        String timestamp=getIntent().getStringExtra("date");
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("MechanicWork");
         Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(Date1);

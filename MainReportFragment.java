@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +27,7 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
@@ -82,6 +84,7 @@ public class MainReportFragment extends Fragment {
     long startTimestamp,endTimestamp;
     int count1,count2,count3,count4;
      TextView selectedDateTextView,selectedDateTextView1;
+     Button  button;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,14 +105,14 @@ public class MainReportFragment extends Fragment {
          endDatePicker = view.findViewById(R.id.end_date_picker);
         DatePicker datePicker = view.findViewById(R.id.start_date_picker);
          selectedDateTextView = view.findViewById(R.id.txtview_startdate);
-
+button=view.findViewById(R.id.btnDownloadReport);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             datePicker.setOnDateChangedListener(new DatePicker.OnDateChangedListener() {
                 @Override
                 public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth) {
                     Calendar calendar = Calendar.getInstance();
                     calendar.set(year, month, dayOfMonth);
-                    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+                    SimpleDateFormat sdf= new SimpleDateFormat("MM/dd/yyyy", Locale.US);
                     selectedDateTextView.setText(sdf.format(calendar.getTime()));
                 }
             });
@@ -118,12 +121,12 @@ public class MainReportFragment extends Fragment {
         selectedDateTextView1 = view.findViewById(R.id.txtview_enddate);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            datePicker.setOnDateChangedListener(new DatePicker.OnDateChangedListener() {
+            datePicker1.setOnDateChangedListener(new DatePicker.OnDateChangedListener() {
                 @Override
-                public void onDateChanged(DatePicker datePicker, int year, int month, int dayOfMonth) {
+                public void onDateChanged(DatePicker datePicker1, int year, int month, int dayOfMonth) {
                     Calendar calendar = Calendar.getInstance();
                     calendar.set(year, month, dayOfMonth);
-                    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
+                    SimpleDateFormat sdf= new SimpleDateFormat("MM/dd/yyyy", Locale.US);
                     selectedDateTextView1.setText(sdf.format(calendar.getTime()));
                 }
             });
@@ -158,19 +161,34 @@ public class MainReportFragment extends Fragment {
                 }
             }
         });
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CreateReport();
+            }
+        });
 
         return view;
     }
     public void CreateReport(){
+        if(startTimestamp == 0 || endTimestamp == 0  ){
+            Toast.makeText(getContext(), " enter start date ",Toast.LENGTH_SHORT).show();
+
+        }
+        else{
+
+
+
 
         String userID= FirebaseAuth.getInstance().getCurrentUser().getUid();
 
 // Get a reference to the database
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        Query ref = database.getReference().child("DriverRequest").child("MechanicWork");
-// Retrieve data from the database
-        ref.equalTo("mechanicId",userID).orderByChild("timestamp").startAt(String.valueOf(startTimestamp)).endAt(String.valueOf(endTimestamp))
-.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Work").child("mechanics").child(userID);
+    Query query = ref.orderByChild("timestamp").startAt(startTimestamp).endAt(endTimestamp);
+
+
+        query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
@@ -221,7 +239,7 @@ public class MainReportFragment extends Fragment {
                     Chunk modelChunk1 = new Chunk("MODEL", nameFont);
                     Chunk partChunk1 = new Chunk("PART", nameFont);
                     Chunk problemChunk1 = new Chunk("PROBLEM", nameFont);
-                    Chunk priceChunk1 = new Chunk("AMOUNT(kshs)", nameFont);
+                    Chunk priceChunk1 = new Chunk("AMOUNT", nameFont);
                     Chunk phoneChunk1 = new Chunk("DRIVER", nameFont);
                     Chunk methodChunk1 = new Chunk("PAYMENT", nameFont);
                     Chunk statusChunk1 = new Chunk("STATUS", nameFont);
@@ -330,9 +348,29 @@ public class MainReportFragment extends Fragment {
                     Query query1 = ref.orderByChild("carPart").equalTo("Engine");
                     query1.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshotE) {
                             // Get the number of children that contain the first value
-                            count1 = (int) dataSnapshot.getChildrenCount();
+                            count1 = (int) dataSnapshotE.getChildrenCount();
+                            Log.d(TAG, "onDataChange: count1"+ count1);
+                            // Print the count1
+                            Chunk engine = new Chunk("Engine", nameFont);
+
+                            Chunk engineDb = new Chunk((char) count1);
+                            Phrase dataPhrase5 = new Phrase();
+                            dataPhrase5.add(engine);
+                            dataPhrase5.add(":");
+                            dataPhrase5.add(engineDb);
+
+                            Paragraph dataParagraph5 = new Paragraph();
+                            dataParagraph5.add(dataPhrase5);
+
+// Add the paragraph to the PDF
+                            try {
+                                doc.add(dataParagraph5);
+                            } catch (DocumentException e) {
+                                e.printStackTrace();
+                            }
+
                             // Decrement the latch
 //                            latch.countDown();
                         }
@@ -347,9 +385,10 @@ public class MainReportFragment extends Fragment {
                     Query query2 = ref.orderByChild("carPart").equalTo("Tyres");
                     query2.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshotT) {
                             // Get the number of children that contain the second value
-                            count2 = (int) dataSnapshot.getChildrenCount();
+                            count2 = (int) dataSnapshotT.getChildrenCount();
+                            Log.d(TAG, "onDataChange: count2"+ count2);
                             // Decrement the latch
 //                            latch.countDown();
                         }
@@ -385,6 +424,7 @@ public class MainReportFragment extends Fragment {
                             count4 = (int) dataSnapshot.getChildrenCount();
                             // Decrement the latch
 //                            latch.countDown();
+                            doc.close();
                         }
 
                         @Override
@@ -394,23 +434,10 @@ public class MainReportFragment extends Fragment {
                     });
 // Wait for all queries to complete
 //                    latch.await();
-// Print the count1
-                    Chunk engine = new Chunk("Engine", nameFont);
-
-                    Chunk engineDb = new Chunk((char) count1);
-                    Phrase dataPhrase5 = new Phrase();
-                    dataPhrase5.add(engine);
-                    dataPhrase5.add(":");
-                    dataPhrase5.add(engineDb);
-
-                    Paragraph dataParagraph5 = new Paragraph();
-                    dataParagraph5.add(dataPhrase5);
-
-// Add the paragraph to the PDF
-                    doc.add(dataParagraph5);
 
 
-                    doc.close();
+
+
                     // Add data to the PDF
 
 
@@ -429,6 +456,6 @@ public class MainReportFragment extends Fragment {
 
             }
         });
-
+        }
     }
 }

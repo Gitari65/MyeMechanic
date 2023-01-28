@@ -67,6 +67,7 @@ public class MechReportFragment extends Fragment {
     }
     LineChart linechart;
     int engineCount=0,tyresCount=0,electricalCount=0,brakesCount=0;
+    int suzukiCount=0,toyotaCount=0,sedanCount=0,mazdaCount=0;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,7 +85,7 @@ public class MechReportFragment extends Fragment {
         // Create a new line chart
          linechart = (LineChart) view.findViewById(R.id.lineChart);
 
-
+GetCarPartCount();
 
       return  view;
     }
@@ -92,7 +93,7 @@ public class MechReportFragment extends Fragment {
 String userId= FirebaseAuth.getInstance().getCurrentUser().getUid();
 
 // Create a new list of entries for the engine count
-        List<Entry> engineEntries = new ArrayList<>();
+        List<Entry> sedanEntries = new ArrayList<>();
 
 
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Work").child("drivers").child(userId);
@@ -105,6 +106,24 @@ String userId= FirebaseAuth.getInstance().getCurrentUser().getUid();
                     } else if (snapshot.child("carpart").getValue().equals("Engine")) {
                         engineCount++;
                     }
+                    else if (snapshot.child("carpart").getValue().equals("Brakes")) {
+                        brakesCount++;
+                    }
+                    else if (snapshot.child("carpart").getValue().equals("Electrical")) {
+                       electricalCount++;
+                    }
+                    else if (snapshot.child("carModel").getValue().equals("Sedan")) {
+                        sedanCount++;
+                    }
+                    else if (snapshot.child("carModel").getValue().equals("Suzuki")) {
+                        suzukiCount++;
+                    }
+                    else if (snapshot.child("carModel").getValue().equals("Mazda")) {
+                        mazdaCount++;
+                    }
+                    else if (snapshot.child("carModel").getValue().equals("Toyota")) {
+                        toyotaCount++;
+                    }
                 }
             }
 
@@ -113,10 +132,15 @@ String userId= FirebaseAuth.getInstance().getCurrentUser().getUid();
                 // Handle error
             }
         });
-        Log.d(TAG, "GetCarPartCount: "+ engineCount);
-        engineEntries.add(new Entry(1, (float) engineCount));
-        List<Entry> tyreEntries = new ArrayList<>();
-        tyreEntries.add(new Entry(2, (float) tyresCount));
+        Log.d(TAG, "GetCarPartCount:engine "+ engineCount);
+        Log.d(TAG, "GetCarModelCount: sedan"+ sedanCount);
+        sedanEntries.add(new Entry(1, (float) sedanCount));
+        List<Entry> suzukiEntries = new ArrayList<>();
+        suzukiEntries.add(new Entry(2, (float) suzukiCount));
+        List<Entry> toyotaEntries = new ArrayList<>();
+        toyotaEntries.add(new Entry(2, (float) toyotaCount));
+        List<Entry> mazdaEntries = new ArrayList<>();
+       mazdaEntries.add(new Entry(2, (float) mazdaCount));
 // Retrieve the count of "engine" children in the "Work/drivers" directory
 //        DatabaseReference engineRef = FirebaseDatabase.getInstance().getReference("Work").child("drivers").child(userId);
 //        engineRef.addValueEventListener(new ValueEventListener() {
@@ -153,19 +177,28 @@ String userId= FirebaseAuth.getInstance().getCurrentUser().getUid();
 //        });
 
 // Create a new data set for the engine count
-        LineDataSet engineDataSet = new LineDataSet(engineEntries, "Engine Count");
-        engineDataSet.setColor(Color.RED);
-        engineDataSet.setValueTextColor(Color.RED);
+        LineDataSet sedanDataset = new LineDataSet(sedanEntries, "Sedan Model");
+        sedanDataset.setColor(Color.RED);
+        sedanDataset.setValueTextColor(Color.RED);
 
 // Create a new data set for the tyre count
-        LineDataSet tyreDataSet = new LineDataSet(tyreEntries, "Tyre Count");
-        tyreDataSet.setColor(Color.BLUE);
-        tyreDataSet.setValueTextColor(Color.BLUE);
+        LineDataSet suzukiDataSet = new LineDataSet(suzukiEntries, "Suzuki Model");
+        suzukiDataSet.setColor(Color.BLUE);
+        suzukiDataSet.setValueTextColor(Color.BLUE);
+        // Create a new data set for the tyre count
+        LineDataSet mazdaDataSet = new LineDataSet(mazdaEntries, "Mazda Model");
+        mazdaDataSet.setColor(Color.GREEN);
+        mazdaDataSet.setValueTextColor(Color.GREEN);
+        // Create a new data set for the tyre count
+        LineDataSet toyotaDataSet = new LineDataSet(mazdaEntries, "Toyota Model");
+        toyotaDataSet.setColor(Color.GREEN);
+        toyotaDataSet.setValueTextColor(Color.GREEN);
+
 
 // Add the data sets to a list
         List<ILineDataSet> dataSets = new ArrayList<>();
-        dataSets.add(engineDataSet);
-        dataSets.add(tyreDataSet);
+        dataSets.add(sedanDataset);
+        dataSets.add(suzukiDataSet);
 
 // Create a new data object from the data sets
         LineData data = new LineData(dataSets);

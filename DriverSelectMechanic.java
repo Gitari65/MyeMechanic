@@ -223,10 +223,12 @@ buttonReviews=findViewById(R.id.btn_viewratings);
             public void onClick(View v) {
                 String date=getIntent().getStringExtra("date");
                 String mechanicPhoneNumber= getIntent().getStringExtra("phonenumber");
+                long timestamp=getIntent().getLongExtra("timestamp",0);
 
                 Intent intent = new Intent(getApplicationContext(), RatingMainActivity.class);
                 intent.putExtra("mechanicId", current_userId);
                 intent.putExtra("date", date);
+                intent.putExtra("timestamp", timestamp);
                 //String date=getIntent().getStringExtra("date");
                 String carPart=getIntent().getStringExtra("carPart");
                 String carModel=getIntent().getStringExtra("carModel");
@@ -326,6 +328,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 //cancelling request
                 String current_userId=FirebaseAuth.getInstance().getCurrentUser().getUid();
                 CancellingRequest();
+                StoreCancelledRequests();
                // RequestProcessingDetails();
 
 
@@ -517,12 +520,66 @@ buttonReviews=findViewById(R.id.btn_viewratings);
     }
 
 
+     public void StoreCancelledRequests(){
+            String mechId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            long timestamp=getIntent().getLongExtra("timestamp",0);
+         String date=getIntent().getStringExtra("date");
+         String carPart=getIntent().getStringExtra("carPart");
+         String carModel=getIntent().getStringExtra("carModel");
+            Map<String, Object> user3 = new HashMap<>();
+         user3.put("carPart",carPart);
+         user3.put("mechId",current_userId);
+         user3.put("carModel",carModel);
+         user3.put("timestamp",timestamp);
+
+            DatabaseReference dbRef=FirebaseDatabase.getInstance().getReference("Work").child("Cancelled").child(mechId);
+            dbRef.push().setValue(user3);
+        }
+
+
+
+
+
+
+
+
+
+
     public void CancellingRequest(){
         String date=getIntent().getStringExtra("date");
         String childKey=getIntent().getStringExtra("childKey");
+        long timestamp=getIntent().getLongExtra("timestamp",0);
+        DatabaseReference rootRef2 = FirebaseDatabase.getInstance().getReference();
+        String user_id=FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference additionalUserInfoRef2 = rootRef2.child("DriverRequest").child("Driver").child(user_id);
+        Query userQuery2 = additionalUserInfoRef2.orderByChild("timestamp").equalTo(timestamp);
+        ValueEventListener valueEventListener2 = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("status", "cancelled");
+                    map.put("mechanicId", "");
+                    ds.getRef().updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+
+
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+            }
+        };
+        userQuery2.addListenerForSingleValueEvent(valueEventListener2);
+
+
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
-        Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
+        Query userQuery = additionalUserInfoRef.orderByChild("timestamp").equalTo(timestamp);
         current_userId = getIntent().getStringExtra("currentuserid");
         ValueEventListener valueEventListener = new ValueEventListener() {
             @Override
@@ -567,16 +624,48 @@ buttonReviews=findViewById(R.id.btn_viewratings);
 
 
     }
+
+
+
+
     public void RequestingMechanic(){
         String childKey=getIntent().getStringExtra("childKey");
         String date=getIntent().getStringExtra("date");
+      long timestamp=getIntent().getLongExtra("timestamp",0);
+        DatabaseReference rootRef2 = FirebaseDatabase.getInstance().getReference();
+        String user_id=FirebaseAuth.getInstance().getCurrentUser().getUid();
+//        DatabaseReference myRef2=FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Driver").child(user_id).push();
+        DatabaseReference additionalUserInfoRef2 = rootRef2.child("DriverRequest").child("Driver").child(user_id);
+        Query userQuery2 = additionalUserInfoRef2.orderByChild("timestamp").equalTo(timestamp);
+        ValueEventListener valueEventListener2 = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("status", "sent");
+                    map.put("mechanicId", current_userId);
+                    ds.getRef().updateChildren(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+
+
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+            }
+        };
+        userQuery2.addListenerForSingleValueEvent(valueEventListener2);
 
 
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
-        Query userQuery = additionalUserInfoRef.orderByChild("date").equalTo(date);
+        DatabaseReference additionalUserInfoRef3 = rootRef.child("DriverRequest").child("Request");
+        Query userQuery3 = additionalUserInfoRef3.orderByChild("timestamp").equalTo(timestamp);
         current_userId = getIntent().getStringExtra("currentuserid");
-        ValueEventListener valueEventListener = new ValueEventListener() {
+        ValueEventListener valueEventListener3 = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for(DataSnapshot ds : dataSnapshot.getChildren()) {
@@ -625,7 +714,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
             }
         };
-        userQuery.addListenerForSingleValueEvent(valueEventListener);
+        userQuery3.addListenerForSingleValueEvent(valueEventListener3);
 
 
 
@@ -752,7 +841,8 @@ buttonNotifyPop.setEnabled(false);
                 String carModel=getIntent().getStringExtra("carModel");
                 String carPart=getIntent().getStringExtra("carPart");
                 String date=getIntent().getStringExtra("date");
-
+                long timestamp= getIntent().getLongExtra("timestamp",0);
+                intent.putExtra("timestamp", timestamp);
                 intent.putExtra("carPart", carPart);
                 intent.putExtra("carModel", carModel);
                 intent.putExtra("date", date);
@@ -794,16 +884,17 @@ buttonNotifyPop.setEnabled(false);
         FirebaseAuth mAuth= FirebaseAuth.getInstance();
         FirebaseUser userID  = mAuth.getCurrentUser();
         String date=getIntent().getStringExtra("date");
+        long timestamp=getIntent().getLongExtra("timestamp",0);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String current_userIdm = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String childKey=getIntent().getStringExtra("childKey");
         DatabaseReference db2 = FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request");
 
-
+        Log.d(TAG, "RequestProcessingDetails: timestamp: "+timestamp);
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference additionalUserInfoRef = rootRef.child("DriverRequest").child("Request");
-        Query userQuery1 = additionalUserInfoRef.orderByChild("date").equalTo(date);
+        Query userQuery = additionalUserInfoRef.orderByChild("timestamp").equalTo(timestamp);
         current_userId = getIntent().getStringExtra("currentuserid");
         ValueEventListener valueEventListener1 = new ValueEventListener() {
             @Override
@@ -883,7 +974,7 @@ buttonNotifyPop.setEnabled(false);
                 Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
             }
         };
-        userQuery1.addValueEventListener(valueEventListener1);
+        userQuery.addValueEventListener(valueEventListener1);
 
 
 
@@ -1215,7 +1306,7 @@ buttonNotifyPop.setEnabled(false);
         return (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1);
     }
     private void sendSMS() {
-        message = "Im trying to request you but you are offline .E-mechanic";
+        message = "Hi mechanic,I'm trying to request you but you seem to be offline .My-mechanic";
         phoneNo=editText2.getText().toString().trim();
 
 

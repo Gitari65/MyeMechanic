@@ -96,7 +96,8 @@ public class AdapterDriverViewRequest extends RecyclerView.Adapter<AdapterDriver
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context.getApplicationContext(), MapsActivity.class);
-
+                long timestamp= req.getTimestamp();
+                intent.putExtra("timestamp", timestamp);
                 intent.putExtra("carPart", req.getCarPart());
                 intent.putExtra("carModel", req.getCarModel());
                 intent.putExtra("date", req.getDate());
@@ -110,7 +111,8 @@ public class AdapterDriverViewRequest extends RecyclerView.Adapter<AdapterDriver
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context.getApplicationContext(), DriverSelectMechanic.class);
-
+                long timestamp= req.getTimestamp();
+                intent.putExtra("timestamp", timestamp);
                 intent.putExtra("carPart", req.getCarPart());
                 intent.putExtra("carModel", req.getCarModel());
                 intent.putExtra("currentuserid", req.getMechanicId());

@@ -203,10 +203,12 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                         //storing spinner
                         DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy @ HH:mm", Locale.US);
                          final  String  date = dateFormat.format(new Date());
+                        final long  timestamp = System.currentTimeMillis();
                         carProblemDescription = editText.getText().toString();
                         String user_id = FirebaseAuth.getInstance().getCurrentUser().getUid();
                         FirebaseFirestore dbEn = FirebaseFirestore.getInstance();
                         DatabaseReference myRef1=FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Request").push();
+                        DatabaseReference myRef2=FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("Driver").child(user_id).push();
                         Map<String, Object> userToy1 = new HashMap<>();
                         userToy1.put("carModel", carModel);
                         userToy1.put("driversId", user_id);
@@ -218,10 +220,9 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                         userToy1.put("finalStatus", "");
                         userToy1.put("status", "not sent");
                         userToy1.put("date", date);
+                        userToy1.put("timestamp", timestamp);
 
-
-
-
+                        myRef2.setValue(userToy1);
 
                         myRef1.setValue(userToy1)
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -238,7 +239,7 @@ public class DriverProblemActivity extends AppCompatActivity implements AdapterV
                                             intent1.putExtra("driverId", user_id);
                                             intent1.putExtra("childKey", childKey);
                                             intent1.putExtra("date", date);
-
+                                            intent1.putExtra("timestamp", timestamp);
                                             intent1.putExtra("carProblemDescription",carProblemDescription);
 
 

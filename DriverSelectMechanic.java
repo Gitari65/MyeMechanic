@@ -521,7 +521,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
 
 
      public void StoreCancelledRequests(){
-            String mechId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            String driverId = FirebaseAuth.getInstance().getCurrentUser().getUid();
             long timestamp=getIntent().getLongExtra("timestamp",0);
          String date=getIntent().getStringExtra("date");
          String carPart=getIntent().getStringExtra("carPart");
@@ -532,7 +532,7 @@ buttonReviews=findViewById(R.id.btn_viewratings);
          user3.put("carModel",carModel);
          user3.put("timestamp",timestamp);
 
-            DatabaseReference dbRef=FirebaseDatabase.getInstance().getReference("Work").child("Cancelled").child(mechId);
+            DatabaseReference dbRef=FirebaseDatabase.getInstance().getReference("Work").child("Cancelled").child(driverId);
             dbRef.push().setValue(user3);
         }
 

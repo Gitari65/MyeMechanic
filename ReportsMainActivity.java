@@ -57,7 +57,7 @@ public class ReportsMainActivity extends AppCompatActivity {
 
         //database
         String  userId= FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference reference= FirebaseDatabase.getInstance().getReference().child("DriverRequest").child("MechanicWork");
+        DatabaseReference reference= FirebaseDatabase.getInstance().getReference().child("Work").child("mechanics");
         reference.orderByChild("mechanicId").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {

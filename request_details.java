@@ -27,8 +27,12 @@ public class request_details {
     private  String carModel;
 
 
-    public Long getTimestamp() {
-        return timestamp;
+    public long getTimestamp() {
+        if (timestamp != null) {
+            return timestamp.longValue();
+        } else {
+            return 0;
+        }
     }
 
     public void setTimestamp(Long timestamp) {

@@ -4,6 +4,8 @@ import static android.content.ContentValues.TAG;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,7 +31,14 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.pdf.PdfWriter;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -438,6 +447,7 @@ public  void getMechanicDetails(){
         dbRef.push().setValue(user3);
     }
 
+
     public void storeReport(){
         //get string
 //        getMechanicDetails();
@@ -455,7 +465,7 @@ public  void getMechanicDetails(){
         user3.put("workProblem",carProblemDescription);
         user3.put("timeTaken","");
         user3.put("timestamp",timestamp);
-        user3.put("carpart",carPart);
+        user3.put("carPart",carPart);
         user3.put("carModel",carModel);
         user3.put("driversId",current_userId);
         user3.put("driverFirstName",driverFirstName);
@@ -473,7 +483,7 @@ public  void getMechanicDetails(){
         user4.put("paymentMethod","");
         user4.put("workProblem",carProblemDescription);
         user4.put("timeTaken","");
-        user4.put("carpart",carPart);
+        user4.put("carPart",carPart);
         user4.put("carModel",carModel);
         user4.put("status", status);
         user4.put("timestamp",timestamp);

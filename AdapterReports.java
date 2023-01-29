@@ -37,6 +37,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -71,7 +72,7 @@ public class AdapterReports extends RecyclerView.Adapter<AdapterReports.MyViewHo
     String driverFirstName;
     String driverSecondName;
     String driverEmail;
-    String driverPhoneNumber,workChildKey;
+    String driverPhoneNumber,workChildKey,paymentStatus;
     String carModel,carPart,carProblemDescription,date,responseDate,status;
 
     @Override
@@ -86,10 +87,15 @@ public class AdapterReports extends RecyclerView.Adapter<AdapterReports.MyViewHo
         status=req.getStatus();
         current_userId=req.getDriversId();
         date= req.getDate();
-        holder.textViewProblem.setText(req.getWorkProblem());
+        holder.textViewProblem.setText(req.getCarPart());
+        holder.textViewPaymentstatus.setText(req.getPaymentStatus());
         holder.textViewUser.setText(req.getDriverFirstName());
         holder.textViewAmount.setText(req.getWorkPrice());
-        holder.textViewDate.setText(req.getResponseDate());
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(req.getTimestamp());
+
+        String formattedDate = dateFormat.format(cal.getTime());
+        holder.textViewDate.setText(formattedDate);
 
 
 
@@ -108,7 +114,7 @@ public class AdapterReports extends RecyclerView.Adapter<AdapterReports.MyViewHo
     }
     public static class MyViewHolder extends RecyclerView.ViewHolder{
 
-        TextView textViewProblem,textViewAmount,textViewDate,textViewUser;
+        TextView textViewProblem,textViewAmount,textViewDate,textViewUser,textViewPaymentstatus;
         Button buttonAccept,buttonCancel,buttonView;
 
         public MyViewHolder(@NonNull View itemView,RecyclerViewInterface recyclerViewInterface) {
@@ -130,6 +136,7 @@ public class AdapterReports extends RecyclerView.Adapter<AdapterReports.MyViewHo
             textViewDate=itemView.findViewById(R.id.txtReportDate);
             textViewUser=itemView.findViewById(R.id.txtReportUserName);
             textViewProblem=itemView.findViewById(R.id.txtReportProblem);
+            textViewPaymentstatus=itemView.findViewById(R.id.txtReportPaymentstatus);
             //buttonAccept=itemView.findViewById(R.id.btnacceptRequest);
 
         }

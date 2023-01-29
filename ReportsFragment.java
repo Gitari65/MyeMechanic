@@ -29,6 +29,11 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -60,8 +65,10 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -100,6 +107,7 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
     int count2 ;
     int count3 ;
     int count4 ;
+
 
     public ReportsFragment() {
         // Required empty public constructor
@@ -143,6 +151,7 @@ public class ReportsFragment extends Fragment implements RecyclerViewInterface {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         button=view.findViewById(R.id.btnPrintButton);
+
         button1=view.findViewById(R.id.btnFullReportButton);
 
                 editText=view.findViewById(R.id.edtSearchReport);
@@ -717,5 +726,6 @@ String userID=FirebaseAuth.getInstance().getCurrentUser().getUid();
         });
 
     }
+
 
 }

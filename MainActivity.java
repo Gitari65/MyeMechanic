@@ -126,7 +126,7 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
                 drawerLayout.closeDrawer(GravityCompat.START);
                 break;
             case R.id.nav_history:
-                replaceFragment(new MainReportFragment());
+                replaceFragment(new MechReportFragment());
                 drawerLayout.closeDrawer(GravityCompat.START);
                 break;
             case R.id.nav_requests:
@@ -172,7 +172,7 @@ navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigation
 
     }
     public void replaceFragment(Fragment fragment){
-     ;
+
         androidx.fragment.app.FragmentManager fragmentManager=getSupportFragmentManager();
         androidx.fragment.app.FragmentTransaction fragmentTransaction=fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.home_fragment,fragment);

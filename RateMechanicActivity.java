@@ -58,7 +58,8 @@ DocumentSnapshot snapshot,documentSnapshot;
                 String date=getIntent().getStringExtra("date");
                 String carPart=getIntent().getStringExtra("carPart");
                 String carModel=getIntent().getStringExtra("carModel");
-
+                long timestamp=getIntent().getLongExtra("timestamp",0);
+                intent.putExtra("timestamp", timestamp);
                 intent.putExtra("carPart", carPart);
                 intent.putExtra("carModel", carModel);
                 intent.putExtra("currentuserid", current_userId);

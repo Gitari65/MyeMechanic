@@ -131,7 +131,8 @@ String problemcarmodel=getIntent().getStringExtra("CarModel");
         buttonSaveWork.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                storeWorkDetails();
+//                storeWorkDetails();
+
                 storeReport();
             }
         });
@@ -171,6 +172,9 @@ String problemcarmodel=getIntent().getStringExtra("CarModel");
                 String current_userId = getIntent().getStringExtra("driversId");
                 Intent intent = new Intent(getApplicationContext(), FloatingChatActivity.class);
                 intent.putExtra("uid", current_userId);
+                long timestampIntent = getIntent().getLongExtra("timestamp",0);
+                intent.putExtra("timestamp", timestampIntent);
+
                 startActivity(intent);
             }
         });
@@ -332,95 +336,98 @@ String problemcarmodel=getIntent().getStringExtra("CarModel");
             return;
         }
 //      final Long timestamp = System.currentTimeMillis();
-        String current_userId = getIntent().getStringExtra("driversId");
-        String timestampIntent = getIntent().getStringExtra("timestamp");
 
+        String current_userId = getIntent().getStringExtra("driversId");
+        long timestampIntent = getIntent().getLongExtra("timestamp",0);
+
+        Log.d(TAG, "storeReportMech Select: timestamp:"+timestampIntent);
         String mechId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 getDriverDetails();
 getMechanicDetails();
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
-        if (timestampIntent!=null){
-            DatabaseReference additionalUserInfoRef = rootRef.child("Work").child("mechanics").child(mechId);
-            Query userQuery = additionalUserInfoRef.orderByChild("timestamp").equalTo(timestampIntent);
-            ValueEventListener valueEventListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    for(DataSnapshot ds : dataSnapshot.getChildren()) {
-                        Map<String, Object> user3 = new HashMap<>();
-                        user3.put("workExpense",cost);
-                        user3.put("workPrice",price);
-                        user3.put("paymentMethod",paymentMethod);
-                        user3.put("workProblem",problem);
-                        user3.put("timeTaken",time);
-
-                        user3.put("driversId",current_userId);
-                        user3.put("driverFirstName",driverFirstName);
-                        user3.put("driverPhoneNumber",driverPhoneNumber);
-                        user3.put("paymentStatus","not paid");
-
-                        ds.getRef().updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void unused) {
+        DatabaseReference additionalUserInfoRef = rootRef.child("Work").child("mechanics").child(mechId);
+        Query userQuery = additionalUserInfoRef.orderByChild("timestamp").equalTo(timestampIntent);
+        ValueEventListener valueEventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    Map<String, Object> user3 = new HashMap<>();
+                    user3.put("workExpense",cost);
+                    user3.put("workPrice",price);
+                    user3.put("paymentMethod",paymentMethod);
+                    user3.put("workProblem",problem);
+                    user3.put("timeTaken",time);
 
 
+                    user3.put("driversId",current_userId);
+                    user3.put("driverFirstName",driverFirstName);
+                    user3.put("driverPhoneNumber",driverPhoneNumber);
+                    user3.put("paymentStatus","not paid");
+
+                    ds.getRef().updateChildren(user3).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+
+pd.dismiss();
 //                                Toast.makeText( getApplicationContext()," saved ",Toast.LENGTH_SHORT).show();
 
 
 
 
-                            }
-                        });
-                    }
-                }
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
-                }
-            };
-            userQuery.addValueEventListener(valueEventListener);
-
-                DatabaseReference additionalUserInfoRef1 = rootRef.child("Work").child("drivers").child(mechId);
-                Query userQuery1 = additionalUserInfoRef1.orderByChild("timestamp").equalTo(timestampIntent);
-                ValueEventListener valueEventListener1 = new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
-
-                            Map<String, Object> user4 = new HashMap<>();
-                            user4.put("workExpense",cost);
-                            user4.put("workPrice",price);
-                            user4.put("paymentMethod",paymentMethod);
-                            user4.put("workProblem",problem);
-                            user4.put("timeTaken",time);
-                            user4.put("mechanicId",mechId);
-
-                            user4.put("mechanicFirstName",mechanicfirstName);
-                            user4.put("mechanicPhoneNumber",mechanicPhoneNumber);
-                            user4.put("paymentStatus","not paid");
-
-
-                            ds.getRef().updateChildren(user4).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void unused) {
-
-
-                                    Toast.makeText( getApplicationContext()," saved ",Toast.LENGTH_SHORT).show();
-
-
-
-
-                                }
-                            });
                         }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
-                    }
-                };
-                userQuery1.addValueEventListener(valueEventListener1);
+                    });
+                }
             }
-        }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+            }
+        };
+        userQuery.addValueEventListener(valueEventListener);
+
+        DatabaseReference additionalUserInfoRef1 = rootRef.child("Work").child("drivers").child(current_userId);
+        Query userQuery1 = additionalUserInfoRef1.orderByChild("timestamp").equalTo(timestampIntent);
+        ValueEventListener valueEventListener1 = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+
+                    Map<String, Object> user4 = new HashMap<>();
+                    user4.put("workExpense",cost);
+                    user4.put("workPrice",price);
+                    user4.put("paymentMethod",paymentMethod);
+                    user4.put("workProblem",problem);
+                    user4.put("timeTaken",time);
+                    user4.put("mechanicId",mechId);
+
+
+                    user4.put("mechanicFirstName",mechanicfirstName);
+                    user4.put("mechanicPhoneNumber",mechanicPhoneNumber);
+                    user4.put("paymentStatus","not paid");
+
+
+                    ds.getRef().updateChildren(user4).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+
+
+                            Toast.makeText( getApplicationContext()," saved ",Toast.LENGTH_SHORT).show();
+
+
+
+
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                pd.dismiss();
+                Log.d(TAG, databaseError.getMessage()); //Don't ignore errors!
+            }
+        };
+        userQuery1.addValueEventListener(valueEventListener1);
+    }
 
 
 

@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
@@ -102,7 +103,12 @@ button.setOnClickListener(new View.OnClickListener() {
 button2.setOnClickListener(new View.OnClickListener() {
     @Override
     public void onClick(View v) {
-CreatePDF();
+        String current_userId=getIntent().getStringExtra("currentuserid");
+
+        Intent intent =new Intent(getApplicationContext(),AdminReports.class);
+        intent.putExtra("currentuserid",current_userId);
+        startActivity(intent);
+
     }
 });
 

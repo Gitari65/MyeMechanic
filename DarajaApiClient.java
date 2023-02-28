@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.example.myemechanic.Interceptor.AccessTokenInterceptor;
 import com.example.myemechanic.Interceptor.AuthInterceptor;
+import com.example.myemechanic.Services.STKPushService;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -17,14 +19,12 @@ import static com.example.myemechanic.Constants.BASE_URL;
 import static com.example.myemechanic.Constants.CONNECT_TIMEOUT;
 import static com.example.myemechanic.Constants.READ_TIMEOUT;
 import static com.example.myemechanic.Constants.WRITE_TIMEOUT;
-
 public class DarajaApiClient {
     private Retrofit retrofit;
     private boolean isDebug;
     private boolean isGetAccessToken;
     private String mAuthToken;
     private HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
-
 
     public DarajaApiClient setIsDebug(boolean isDebug) {
         this.isDebug = isDebug;
@@ -78,9 +78,7 @@ public class DarajaApiClient {
 
         return retrofit;
     }
-
-//    public STKPushService mpesaService() {
-//        return getRestAdapter().create(STKPushService.class);
-//    }
-//
+    public STKPushService mpesaService() {
+        return getRestAdapter().create(STKPushService.class);
+    }
 }

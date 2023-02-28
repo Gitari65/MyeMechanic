@@ -260,6 +260,8 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 intent.putExtra("mechanicId", current_userId);
                 intent.putExtra("phonenumber", mechanicPhoneNumber);
                 intent.putExtra("date", date);
+                long timestamp= getIntent().getLongExtra("timestamp",0);
+                intent.putExtra("timestamp", timestamp);
 
 
                 startActivity(intent);
@@ -277,7 +279,8 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 String date=getIntent().getStringExtra("date");
                 String carPart=getIntent().getStringExtra("carPart");
                 String carModel=getIntent().getStringExtra("carModel");
-
+              long timestamp=getIntent().getLongExtra("timestamp",0);
+                intent.putExtra("timestamp", timestamp);
                 intent.putExtra("carPart", carPart);
                 intent.putExtra("carModel", carModel);
                 intent.putExtra("currentuserid", current_userId);
@@ -343,6 +346,8 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 String current_userId = getIntent().getStringExtra("currentuserid");
                 Intent intent = new Intent(getApplicationContext(), FloatingChatActivity.class);
                 intent.putExtra("uid", current_userId);
+                long timestamp=getIntent().getLongExtra("timestamp",0);
+                intent.putExtra("timestamp", timestamp);
                 startActivity(intent);
             }
         });
@@ -818,6 +823,8 @@ buttonReviews=findViewById(R.id.btn_viewratings);
                 String current_userId = getIntent().getStringExtra("currentuserid");
                 Intent intent = new Intent(getApplicationContext(), FloatingChatActivity.class);
                 intent.putExtra("uid", current_userId);
+                long timestamp=getIntent().getLongExtra("timestamp",0);
+                intent.putExtra("timestamp", timestamp);
                 startActivity(intent);
             }
         });

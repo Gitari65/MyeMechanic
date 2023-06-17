@@ -1,3 +1,3 @@
 # MyeMechanic
-Driver able to find mecghanics via phone
-incporated google maps
+Driver able to find mechanics via phone
+incoporated google maps Api
